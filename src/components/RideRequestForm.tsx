@@ -1,7 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { AccessibleButton } from "@/components/AccessibleButton";
 import { VoiceInterface } from "@/components/VoiceInterface";
+import { RideScheduler } from "@/components/RideScheduler";
+import { DriverCommunication } from "@/components/DriverCommunication";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
@@ -27,6 +28,11 @@ export const RideRequestForm: React.FC<RideRequestFormProps> = ({ onBack }) => {
   const [isLoadingPrice, setIsLoadingPrice] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentLocation, setCurrentLocation] = useState<Location | null>(null);
+  const [showScheduler, setShowScheduler] = useState(false);
+  const [isScheduled, setIsScheduled] = useState(false);
+  const [scheduleData, setScheduleData] = useState<any>(null);
+  const [rideAccepted, setRideAccepted] = useState(false);
+  const [driverInfo, setDriverInfo] = useState<any>(null);
   
   const { speak, vibrate } = useAccessibility();
   const { user } = useUser();
@@ -101,6 +107,9 @@ export const RideRequestForm: React.FC<RideRequestFormProps> = ({ onBack }) => {
     } else if (lowerCommand.includes('destino') || lowerCommand.includes('indo')) {
       setDestination({ address: command });
       speak('Destino definido por voz');
+    } else if (lowerCommand.includes('agendar')) {
+      setShowScheduler(true);
+      speak('Abrindo agendamento de corrida');
     } else if (lowerCommand.includes('confirmar') || lowerCommand.includes('solicitar')) {
       handleSubmit();
     }
@@ -131,16 +140,113 @@ export const RideRequestForm: React.FC<RideRequestFormProps> = ({ onBack }) => {
     }
 
     setIsSubmitting(true);
-    speak('Solicitando corrida...');
+    
+    if (isScheduled) {
+      speak('Agendamento confirmado! Você receberá uma confirmação próximo ao horário.');
+    } else {
+      speak('Solicitando corrida...');
+    }
     
     // Simulate API call
     setTimeout(() => {
-      speak('Corrida solicitada com sucesso! Procurando motoristas próximos.');
-      vibrate([300, 100, 300]);
-      setIsSubmitting(false);
-      onBack();
+      if (isScheduled) {
+        speak('Corrida agendada com sucesso!');
+        vibrate([300, 100, 300]);
+        setIsSubmitting(false);
+        onBack();
+      } else {
+        // Simulate finding driver
+        const mockDriver = {
+          name: 'João Silva',
+          phone: '+55 11 99999-9999',
+          vehicle: 'Honda Civic Branco',
+          plate: 'ABC-1234',
+          rating: 4.8
+        };
+        
+        setDriverInfo(mockDriver);
+        setRideAccepted(true);
+        speak('Corrida aceita! Motorista a caminho.');
+        vibrate([300, 100, 300]);
+        setIsSubmitting(false);
+      }
     }, 2000);
   };
+
+  const handleSchedule = (data: any) => {
+    setScheduleData(data);
+    setIsScheduled(true);
+    setShowScheduler(false);
+    speak(`Corrida agendada para ${data.date} às ${data.time}`);
+  };
+
+  const handleDriverCall = () => {
+    if (driverInfo) {
+      window.open(`tel:${driverInfo.phone}`);
+    }
+  };
+
+  const handleDriverMessage = () => {
+    speak('Funcionalidade de chat em desenvolvimento');
+  };
+
+  const handleLocateDriver = () => {
+    speak('Localizando motorista no mapa');
+  };
+
+  if (rideAccepted && driverInfo) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center space-x-4 mb-6">
+          <AccessibleButton
+            onClick={onBack}
+            variant="outline"
+            ariaLabel="Voltar ao menu principal"
+            className="h-12 w-12"
+          >
+            ←
+          </AccessibleButton>
+          <h2 className="text-2xl font-bold">Corrida Aceita</h2>
+        </div>
+
+        <div className="text-center space-y-4">
+          <div className="text-6xl">🚗</div>
+          <h3 className="text-xl font-bold text-green-600">Motorista a caminho!</h3>
+          <p className="text-lg">Tempo estimado: 8 minutos</p>
+        </div>
+
+        <DriverCommunication
+          driverInfo={driverInfo}
+          onCall={handleDriverCall}
+          onMessage={handleDriverMessage}
+          onLocateDriver={handleLocateDriver}
+        />
+      </div>
+    );
+  }
+
+  if (showScheduler) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center space-x-4 mb-6">
+          <AccessibleButton
+            onClick={() => setShowScheduler(false)}
+            variant="outline"
+            ariaLabel="Voltar ao formulário"
+            className="h-12 w-12"
+          >
+            ←
+          </AccessibleButton>
+          <h2 className="text-2xl font-bold">Agendar Corrida</h2>
+        </div>
+
+        <RideScheduler
+          onSchedule={handleSchedule}
+          onCancel={() => setShowScheduler(false)}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -153,13 +259,41 @@ export const RideRequestForm: React.FC<RideRequestFormProps> = ({ onBack }) => {
         >
           ←
         </AccessibleButton>
-        <h2 className="text-2xl font-bold">Solicitar Corrida</h2>
+        <h2 className="text-2xl font-bold">
+          {isScheduled ? 'Corrida Agendada' : 'Solicitar Corrida'}
+        </h2>
       </div>
 
       <VoiceInterface
         onCommand={handleVoiceCommand}
-        placeholder="Diga a origem e destino da sua viagem"
+        placeholder="Diga a origem e destino da sua viagem, ou 'agendar' para agendar"
       />
+
+      {isScheduled && scheduleData && (
+        <Card className="p-4 bg-blue-50 border-blue-200">
+          <div className="flex items-center space-x-3">
+            <span className="text-2xl">📅</span>
+            <div>
+              <p className="font-bold">Corrida Agendada</p>
+              <p className="text-sm text-muted-foreground">
+                {scheduleData.date} às {scheduleData.time}
+                {scheduleData.isRecurring && ' (Semanal)'}
+              </p>
+            </div>
+            <AccessibleButton
+              onClick={() => {
+                setIsScheduled(false);
+                setScheduleData(null);
+              }}
+              variant="outline"
+              ariaLabel="Cancelar agendamento"
+              className="ml-auto"
+            >
+              Cancelar
+            </AccessibleButton>
+          </div>
+        </Card>
+      )}
 
       <Card className="p-6 space-y-4">
         <div className="space-y-4">
@@ -244,26 +378,39 @@ export const RideRequestForm: React.FC<RideRequestFormProps> = ({ onBack }) => {
         </Card>
       )}
 
-      <AccessibleButton
-        onClick={handleSubmit}
-        disabled={!origin.address || !destination.address || isSubmitting}
-        variant="primary"
-        size="lg"
-        ariaLabel="Confirmar solicitação de corrida"
-        className="w-full h-16 text-lg"
-      >
-        {isSubmitting ? (
+      <div className="flex space-x-3">
+        <AccessibleButton
+          onClick={() => setShowScheduler(true)}
+          variant="outline"
+          ariaLabel="Agendar corrida para mais tarde"
+          className="flex-1 h-16 text-lg"
+        >
           <div className="flex items-center space-x-2">
-            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-            <span>Solicitando...</span>
+            <span>📅</span>
+            <span>Agendar</span>
           </div>
-        ) : (
-          <div className="flex items-center space-x-2">
-            <span>🚗</span>
-            <span>Confirmar Corrida</span>
-          </div>
-        )}
-      </AccessibleButton>
+        </AccessibleButton>
+
+        <AccessibleButton
+          onClick={handleSubmit}
+          disabled={!origin.address || !destination.address || isSubmitting}
+          variant="primary"
+          ariaLabel={isScheduled ? "Confirmar agendamento" : "Confirmar solicitação de corrida"}
+          className="flex-1 h-16 text-lg"
+        >
+          {isSubmitting ? (
+            <div className="flex items-center space-x-2">
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+              <span>{isScheduled ? 'Agendando...' : 'Solicitando...'}</span>
+            </div>
+          ) : (
+            <div className="flex items-center space-x-2">
+              <span>🚗</span>
+              <span>{isScheduled ? 'Confirmar Agendamento' : 'Confirmar Corrida'}</span>
+            </div>
+          )}
+        </AccessibleButton>
+      </div>
     </div>
   );
 };

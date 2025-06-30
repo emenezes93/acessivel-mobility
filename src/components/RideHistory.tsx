@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { AccessibleButton } from "@/components/AccessibleButton";
 import { Card } from "@/components/ui/card";
 import { useAccessibility } from "@/contexts/AccessibilityContext";
@@ -8,110 +8,86 @@ interface RideHistoryProps {
   onBack: () => void;
 }
 
-interface Ride {
+interface RideRecord {
   id: string;
   date: string;
   origin: string;
   destination: string;
+  driver: string;
   price: number;
   status: 'completed' | 'cancelled';
-  accessibilityFeatures: string[];
+  rating?: number;
+  accessibilityUsed: string[];
 }
 
 export const RideHistory: React.FC<RideHistoryProps> = ({ onBack }) => {
-  const [rides, setRides] = useState<Ride[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [rides] = useState<RideRecord[]>([
+    {
+      id: '1',
+      date: '2024-06-28',
+      origin: 'Shopping Center Norte',
+      destination: 'Hospital das Clínicas',
+      driver: 'João Silva',
+      price: 25.50,
+      status: 'completed',
+      rating: 4.5,
+      accessibilityUsed: ['wheelchair', 'visual-assistance']
+    },
+    {
+      id: '2',
+      date: '2024-06-25',
+      origin: 'Rua das Flores, 123',
+      destination: 'Metrô Vila Madalena',
+      driver: 'Maria Santos',
+      price: 18.00,
+      status: 'completed',
+      rating: 5,
+      accessibilityUsed: ['hearing-assistance']
+    },
+    {
+      id: '3',
+      date: '2024-06-20',
+      origin: 'Casa',
+      destination: 'Consulta médica',
+      driver: 'Pedro Oliveira',
+      price: 32.00,
+      status: 'cancelled',
+      accessibilityUsed: ['guide-dog']
+    }
+  ]);
+
+  const [showRatingModal, setShowRatingModal] = useState<string | null>(null);
+  const [selectedRating, setSelectedRating] = useState(0);
   const { speak } = useAccessibility();
 
-  useEffect(() => {
-    // Simulate loading ride history
-    setTimeout(() => {
-      const mockRides: Ride[] = [
-        {
-          id: '1',
-          date: '2024-06-28',
-          origin: 'Shopping Center Norte',
-          destination: 'Hospital das Clínicas',
-          price: 18.50,
-          status: 'completed',
-          accessibilityFeatures: ['Cadeira de rodas']
-        },
-        {
-          id: '2',
-          date: '2024-06-25',
-          origin: 'Estação Sé',
-          destination: 'Aeroporto de Congonhas',
-          price: 35.00,
-          status: 'completed',
-          accessibilityFeatures: ['Cão guia']
-        },
-        {
-          id: '3',
-          date: '2024-06-20',
-          origin: 'Rua Augusta, 1000',
-          destination: 'Parque Ibirapuera',
-          price: 22.75,
-          status: 'cancelled',
-          accessibilityFeatures: []
-        }
-      ];
-      setRides(mockRides);
-      setIsLoading(false);
-      speak(`${mockRides.length} corridas encontradas no histórico`);
-    }, 1000);
-  }, [speak]);
+  const handleRate = (rideId: string, rating: number) => {
+    speak(`Avaliação de ${rating} estrelas enviada`);
+    setShowRatingModal(null);
+    setSelectedRating(0);
+  };
+
+  const getAccessibilityIcons = (features: string[]) => {
+    const iconMap: { [key: string]: string } = {
+      'wheelchair': '♿',
+      'guide-dog': '🦮',
+      'hearing-assistance': '🦻',
+      'visual-assistance': '👁️',
+      'mobility-assistance': '🦯'
+    };
+    
+    return features.map(feature => iconMap[feature] || '🔧').join(' ');
+  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('pt-BR', {
       day: '2-digit',
       month: '2-digit',
-      year: 'numeric'
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
     });
   };
-
-  const getStatusIcon = (status: string) => {
-    return status === 'completed' ? '✅' : '❌';
-  };
-
-  const getStatusText = (status: string) => {
-    return status === 'completed' ? 'Concluída' : 'Cancelada';
-  };
-
-  const announceRide = (ride: Ride) => {
-    const features = ride.accessibilityFeatures.length > 0 
-      ? ` com ${ride.accessibilityFeatures.join(', ')}`
-      : '';
-    
-    speak(
-      `Corrida de ${ride.origin} para ${ride.destination} em ${formatDate(ride.date)}. ` +
-      `Status: ${getStatusText(ride.status)}. ` +
-      `Valor: ${ride.price.toFixed(2)} reais${features}`
-    );
-  };
-
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center space-x-4 mb-6">
-          <AccessibleButton
-            onClick={onBack}
-            variant="outline"
-            ariaLabel="Voltar ao menu principal"
-            className="h-12 w-12"
-          >
-            ←
-          </AccessibleButton>
-          <h2 className="text-2xl font-bold">Histórico de Corridas</h2>
-        </div>
-        
-        <div className="text-center py-8">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-lg" aria-live="polite">Carregando histórico...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -127,80 +103,139 @@ export const RideHistory: React.FC<RideHistoryProps> = ({ onBack }) => {
         <h2 className="text-2xl font-bold">Histórico de Corridas</h2>
       </div>
 
-      {rides.length === 0 ? (
-        <Card className="p-8 text-center">
-          <div className="text-4xl mb-4">📱</div>
-          <h3 className="text-xl font-semibold mb-2">Nenhuma corrida encontrada</h3>
-          <p className="text-muted-foreground">
-            Suas corridas aparecerão aqui após serem realizadas.
-          </p>
-        </Card>
-      ) : (
-        <div className="space-y-4">
-          <p className="text-lg text-muted-foreground text-center">
-            {rides.length} corrida{rides.length !== 1 ? 's' : ''} encontrada{rides.length !== 1 ? 's' : ''}
-          </p>
-          
-          {rides.map((ride) => (
-            <Card key={ride.id} className="p-6">
-              <AccessibleButton
-                onClick={() => announceRide(ride)}
-                variant="ghost"
-                ariaLabel={`Detalhes da corrida de ${ride.origin} para ${ride.destination}`}
-                className="w-full text-left p-0 h-auto"
-              >
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-lg font-semibold">
-                      {formatDate(ride.date)}
-                    </span>
+      <div className="space-y-4">
+        {rides.map((ride) => (
+          <Card key={ride.id} className="p-4">
+            <div className="space-y-3">
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <p className="text-sm text-muted-foreground">
+                    {formatDate(ride.date)}
+                  </p>
+                  <div className="space-y-2 mt-2">
                     <div className="flex items-center space-x-2">
-                      <span>{getStatusIcon(ride.status)}</span>
-                      <span className={`text-sm font-medium ${
-                        ride.status === 'completed' ? 'text-green-600' : 'text-red-600'
-                      }`}>
-                        {getStatusText(ride.status)}
-                      </span>
+                      <span className="text-green-600">📍</span>
+                      <span className="text-sm">{ride.origin}</span>
                     </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <div className="flex items-start space-x-2">
-                      <span className="text-green-600 mt-1">📍</span>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Origem</p>
-                        <p className="font-medium">{ride.origin}</p>
-                      </div>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-red-600">🎯</span>
+                      <span className="text-sm">{ride.destination}</span>
                     </div>
-                    
-                    <div className="flex items-start space-x-2">
-                      <span className="text-red-600 mt-1">🎯</span>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Destino</p>
-                        <p className="font-medium">{ride.destination}</p>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between pt-2 border-t">
-                    <div className="text-2xl font-bold text-primary">
-                      R$ {ride.price.toFixed(2)}
-                    </div>
-                    
-                    {ride.accessibilityFeatures.length > 0 && (
-                      <div className="flex items-center space-x-1">
-                        <span>♿</span>
-                        <span className="text-sm text-muted-foreground">
-                          {ride.accessibilityFeatures.join(', ')}
-                        </span>
-                      </div>
-                    )}
                   </div>
                 </div>
+                
+                <div className="text-right">
+                  <p className="font-bold text-lg">R$ {ride.price.toFixed(2)}</p>
+                  <p className={`text-sm px-2 py-1 rounded ${
+                    ride.status === 'completed' 
+                      ? 'bg-green-100 text-green-800' 
+                      : 'bg-red-100 text-red-800'
+                  }`}>
+                    {ride.status === 'completed' ? 'Concluída' : 'Cancelada'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="border-t pt-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Motorista</p>
+                    <p className="font-medium">{ride.driver}</p>
+                  </div>
+                  
+                  {ride.rating && (
+                    <div className="flex items-center space-x-1">
+                      <span>⭐</span>
+                      <span className="font-medium">{ride.rating}</span>
+                    </div>
+                  )}
+                </div>
+
+                {ride.accessibilityUsed.length > 0 && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Acessibilidade</p>
+                    <p className="text-lg">{getAccessibilityIcons(ride.accessibilityUsed)}</p>
+                  </div>
+                )}
+              </div>
+
+              {ride.status === 'completed' && !ride.rating && (
+                <AccessibleButton
+                  onClick={() => setShowRatingModal(ride.id)}
+                  variant="outline"
+                  ariaLabel={`Avaliar corrida com ${ride.driver}`}
+                  className="w-full mt-3"
+                >
+                  ⭐ Avaliar Corrida
+                </AccessibleButton>
+              )}
+            </div>
+          </Card>
+        ))}
+      </div>
+
+      {/* Modal de Avaliação */}
+      {showRatingModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-sm p-6">
+            <h3 className="text-xl font-bold text-center mb-4">
+              Avaliar Corrida
+            </h3>
+            
+            <div className="flex justify-center space-x-2 mb-6">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <AccessibleButton
+                  key={star}
+                  onClick={() => {
+                    setSelectedRating(star);
+                    speak(`${star} estrelas selecionadas`);
+                  }}
+                  variant="ghost"
+                  ariaLabel={`${star} estrelas`}
+                  className={`text-3xl ${
+                    star <= selectedRating ? 'text-yellow-500' : 'text-gray-300'
+                  }`}
+                >
+                  ⭐
+                </AccessibleButton>
+              ))}
+            </div>
+            
+            <div className="flex space-x-3">
+              <AccessibleButton
+                onClick={() => handleRate(showRatingModal, selectedRating)}
+                disabled={selectedRating === 0}
+                variant="primary"
+                ariaLabel="Confirmar avaliação"
+                className="flex-1"
+              >
+                Confirmar
               </AccessibleButton>
-            </Card>
-          ))}
+              
+              <AccessibleButton
+                onClick={() => {
+                  setShowRatingModal(null);
+                  setSelectedRating(0);
+                }}
+                variant="outline"
+                ariaLabel="Cancelar avaliação"
+                className="flex-1"
+              >
+                Cancelar
+              </AccessibleButton>
+            </div>
+          </Card>
         </div>
+      )}
+
+      {rides.length === 0 && (
+        <Card className="p-8 text-center">
+          <div className="text-6xl mb-4">📋</div>
+          <h3 className="text-xl font-bold mb-2">Nenhuma corrida ainda</h3>
+          <p className="text-muted-foreground">
+            Suas corridas aparecerão aqui após serem realizadas
+          </p>
+        </Card>
       )}
     </div>
   );
