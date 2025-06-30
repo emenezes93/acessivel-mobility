@@ -4,10 +4,11 @@ import { Button, ButtonProps } from "@/components/ui/button";
 import { useAccessibility } from "@/contexts/AccessibilityContext";
 import { cn } from "@/lib/utils";
 
-interface AccessibleButtonProps extends ButtonProps {
+interface AccessibleButtonProps extends Omit<ButtonProps, 'variant'> {
   ariaLabel?: string;
   hapticFeedback?: boolean;
   voiceAnnouncement?: string;
+  variant?: 'primary' | 'secondary' | 'destructive' | 'outline' | 'ghost' | 'link';
 }
 
 export const AccessibleButton: React.FC<AccessibleButtonProps> = ({
@@ -17,9 +18,30 @@ export const AccessibleButton: React.FC<AccessibleButtonProps> = ({
   voiceAnnouncement,
   onClick,
   className,
+  variant = 'primary',
   ...props
 }) => {
   const { speak, vibrate, settings } = useAccessibility();
+
+  // Map our custom variants to shadcn variants
+  const getButtonVariant = (variant: string) => {
+    switch (variant) {
+      case 'primary':
+        return 'default';
+      case 'secondary':
+        return 'secondary';
+      case 'destructive':
+        return 'destructive';
+      case 'outline':
+        return 'outline';
+      case 'ghost':
+        return 'ghost';
+      case 'link':
+        return 'link';
+      default:
+        return 'default';
+    }
+  };
 
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (hapticFeedback) {
@@ -40,6 +62,7 @@ export const AccessibleButton: React.FC<AccessibleButtonProps> = ({
   return (
     <Button
       {...props}
+      variant={getButtonVariant(variant)}
       onClick={handleClick}
       aria-label={ariaLabel}
       className={cn(
