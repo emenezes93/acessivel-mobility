@@ -2,7 +2,7 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'app.lovable.930e1b12a8754b06973e592a8f9f58d1',
+  appId: 'com.acessivel.mobility',
   appName: 'acessivel-mobility-now',
   webDir: 'dist',
   server: {

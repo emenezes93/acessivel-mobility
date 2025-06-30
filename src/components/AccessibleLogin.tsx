@@ -8,9 +8,11 @@ import { VoiceInterface } from "@/components/VoiceInterface";
 import { useAccessibility } from "@/contexts/AccessibilityContext";
 import { useUser } from "@/contexts/UserContext";
 import { Card } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
 
 interface AccessibleLoginProps {
-  onLogin: () => void;
+  onLogin: (userType: 'passenger' | 'driver') => void;
 }
 
 export const AccessibleLogin: React.FC<AccessibleLoginProps> = ({ onLogin }) => {
@@ -20,6 +22,12 @@ export const AccessibleLogin: React.FC<AccessibleLoginProps> = ({ onLogin }) => 
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [userType, setUserType] = useState<'passenger' | 'driver'>('passenger');
+  
+  // Campos adicionais para motoristas
+  const [vehicleModel, setVehicleModel] = useState('');
+  const [vehiclePlate, setVehiclePlate] = useState('');
+  const [hasAccessibleVehicle, setHasAccessibleVehicle] = useState(false);
   
   const { speak, vibrate } = useAccessibility();
   const { setUser } = useUser();
@@ -35,7 +43,7 @@ export const AccessibleLogin: React.FC<AccessibleLoginProps> = ({ onLogin }) => 
         name: isLogin ? 'Usuário' : name,
         email,
         phone: isLogin ? '(11) 99999-9999' : phone,
-        userType: 'passenger' as const,
+        userType: userType,
         accessibilityNeeds: {
           visualImpairment: false,
           hearingImpairment: false,
@@ -44,6 +52,14 @@ export const AccessibleLogin: React.FC<AccessibleLoginProps> = ({ onLogin }) => 
           preferredInterface: 'visual' as const,
         },
         emergencyContacts: [],
+        // Adicionar informações do veículo se for motorista
+        ...(userType === 'driver' && !isLogin ? {
+          vehicle: {
+            model: vehicleModel,
+            plate: vehiclePlate,
+            hasAccessibility: hasAccessibleVehicle
+          }
+        } : {})
       };
       
       setUser(newUser);
@@ -52,7 +68,7 @@ export const AccessibleLogin: React.FC<AccessibleLoginProps> = ({ onLogin }) => 
       speak(isLogin ? 'Login realizado com sucesso!' : 'Cadastro realizado com sucesso!');
       vibrate([200, 100, 200]);
       setIsLoading(false);
-      onLogin();
+      onLogin(userType);
     }, 1500);
   };
 
@@ -63,6 +79,12 @@ export const AccessibleLogin: React.FC<AccessibleLoginProps> = ({ onLogin }) => 
     } else if (command.toLowerCase().includes('cadastro') || command.toLowerCase().includes('registrar')) {
       setIsLogin(false);
       speak('Modo de cadastro ativado');
+    } else if (command.toLowerCase().includes('passageiro')) {
+      setUserType('passenger');
+      speak('Modo passageiro selecionado');
+    } else if (command.toLowerCase().includes('motorista')) {
+      setUserType('driver');
+      speak('Modo motorista selecionado');
     }
   };
 
@@ -83,7 +105,7 @@ export const AccessibleLogin: React.FC<AccessibleLoginProps> = ({ onLogin }) => 
 
         <VoiceInterface
           onCommand={handleVoiceCommand}
-          placeholder="Diga 'entrar' ou 'cadastro'"
+          placeholder="Diga 'entrar', 'cadastro', 'passageiro' ou 'motorista'"
         />
 
         <div className="flex space-x-2">
@@ -110,6 +132,24 @@ export const AccessibleLogin: React.FC<AccessibleLoginProps> = ({ onLogin }) => 
             Cadastro
           </AccessibleButton>
         </div>
+        
+        <Tabs 
+          value={userType} 
+          onValueChange={(value) => {
+            setUserType(value as 'passenger' | 'driver');
+            speak(value === 'passenger' ? 'Modo passageiro selecionado' : 'Modo motorista selecionado');
+          }}
+          className="mt-4"
+        >
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="passenger" aria-label="Entrar como passageiro">
+              Passageiro
+            </TabsTrigger>
+            <TabsTrigger value="driver" aria-label="Entrar como motorista">
+              Motorista
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {!isLogin && (
@@ -191,6 +231,62 @@ export const AccessibleLogin: React.FC<AccessibleLoginProps> = ({ onLogin }) => 
               {isLogin ? 'Digite sua senha' : 'Crie uma senha segura'}
             </p>
           </div>
+
+          {/* Campos adicionais para motoristas */}
+          {!isLogin && userType === 'driver' && (
+            <div className="space-y-4 border-t pt-4 mt-4">
+              <h3 className="font-medium">Informações do Veículo</h3>
+              
+              <div className="space-y-2">
+                <Label htmlFor="vehicleModel" className="text-lg font-medium">
+                  Modelo do Veículo
+                </Label>
+                <Input
+                  id="vehicleModel"
+                  type="text"
+                  value={vehicleModel}
+                  onChange={(e) => setVehicleModel(e.target.value)}
+                  required
+                  className="h-12 text-lg"
+                  placeholder="Ex: Toyota Corolla"
+                  aria-describedby="vehicle-model-help"
+                />
+                <p id="vehicle-model-help" className="text-sm text-muted-foreground">
+                  Digite o modelo do seu veículo
+                </p>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="vehiclePlate" className="text-lg font-medium">
+                  Placa do Veículo
+                </Label>
+                <Input
+                  id="vehiclePlate"
+                  type="text"
+                  value={vehiclePlate}
+                  onChange={(e) => setVehiclePlate(e.target.value)}
+                  required
+                  className="h-12 text-lg"
+                  placeholder="Ex: ABC1234"
+                  aria-describedby="vehicle-plate-help"
+                />
+                <p id="vehicle-plate-help" className="text-sm text-muted-foreground">
+                  Digite a placa do seu veículo
+                </p>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="accessibleVehicle"
+                  checked={hasAccessibleVehicle}
+                  onCheckedChange={setHasAccessibleVehicle}
+                />
+                <Label htmlFor="accessibleVehicle" className="text-lg font-medium">
+                  Veículo adaptado para acessibilidade
+                </Label>
+              </div>
+            </div>
+          )}
 
           <AccessibleButton
             type="submit"

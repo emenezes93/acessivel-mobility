@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">acessivel-mobility-now</string>
+    <string name="title_activity_main">acessivel-mobility-now</string>
+    <string name="package_name">com.acessivel.mobility</string>
+    <string name="custom_url_scheme">com.acessivel.mobility</string>
+</resources>

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { AccessibleLogin } from "@/components/AccessibleLogin";
 import { Dashboard } from "@/components/Dashboard";
+import { DriverDashboard } from "@/components/DriverDashboard";
 import { EmergencyButton } from "@/components/EmergencyButton";
 import { AccessibilityProvider } from "@/contexts/AccessibilityContext";
 import { UserProvider } from "@/contexts/UserContext";
@@ -10,12 +11,15 @@ import { UserProvider } from "@/contexts/UserContext";
 const Index = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [userType, setUserType] = useState<'passenger' | 'driver' | null>(null);
 
   useEffect(() => {
     // Check if user is already logged in
     const savedUser = localStorage.getItem('user');
     if (savedUser) {
+      const userData = JSON.parse(savedUser);
       setIsLoggedIn(true);
+      setUserType(userData.userType);
     }
     setIsLoading(false);
   }, []);
@@ -38,9 +42,24 @@ const Index = () => {
           <EmergencyButton />
           
           {!isLoggedIn ? (
-            <AccessibleLogin onLogin={() => setIsLoggedIn(true)} />
+            <AccessibleLogin 
+              onLogin={(type: 'passenger' | 'driver') => {
+                setIsLoggedIn(true);
+                setUserType(type);
+              }} 
+            />
           ) : (
-            <Dashboard onLogout={() => setIsLoggedIn(false)} />
+            userType === 'driver' ? (
+              <DriverDashboard onLogout={() => {
+                setIsLoggedIn(false);
+                setUserType(null);
+              }} />
+            ) : (
+              <Dashboard onLogout={() => {
+                setIsLoggedIn(false);
+                setUserType(null);
+              }} />
+            )
           )}
         </div>
       </UserProvider>
