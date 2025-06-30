@@ -3,6 +3,7 @@ import { AccessibleButton } from "@/components/AccessibleButton";
 import { VoiceInterface } from "@/components/VoiceInterface";
 import { RideScheduler } from "@/components/RideScheduler";
 import { DriverCommunication } from "@/components/DriverCommunication";
+import { PaymentMethodSelector } from "@/components/PaymentMethodSelector";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
@@ -24,6 +25,7 @@ export const RideRequestForm: React.FC<RideRequestFormProps> = ({ onBack }) => {
   const [origin, setOrigin] = useState<Location>({ address: '' });
   const [destination, setDestination] = useState<Location>({ address: '' });
   const [accessibilityNeeds, setAccessibilityNeeds] = useState<string[]>([]);
+  const [paymentMethod, setPaymentMethod] = useState<string>('credit-card');
   const [estimatedPrice, setEstimatedPrice] = useState<number | null>(null);
   const [isLoadingPrice, setIsLoadingPrice] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -53,7 +55,7 @@ export const RideRequestForm: React.FC<RideRequestFormProps> = ({ onBack }) => {
     if (origin.address && destination.address) {
       calculateEstimate();
     }
-  }, [origin.address, destination.address, accessibilityNeeds]);
+  }, [origin.address, destination.address, accessibilityNeeds, paymentMethod]);
 
   const getCurrentLocation = () => {
     if (navigator.geolocation) {
@@ -90,7 +92,8 @@ export const RideRequestForm: React.FC<RideRequestFormProps> = ({ onBack }) => {
     setTimeout(() => {
       const basePrice = 12.50;
       const accessibilityFee = accessibilityNeeds.length * 2.00;
-      const estimated = basePrice + accessibilityFee;
+      const paymentMethodFee = paymentMethod === 'bitcoin' ? 1.50 : 0;
+      const estimated = basePrice + accessibilityFee + paymentMethodFee;
       
       setEstimatedPrice(estimated);
       setIsLoadingPrice(false);
@@ -110,6 +113,15 @@ export const RideRequestForm: React.FC<RideRequestFormProps> = ({ onBack }) => {
     } else if (lowerCommand.includes('agendar')) {
       setShowScheduler(true);
       speak('Abrindo agendamento de corrida');
+    } else if (lowerCommand.includes('cartão') || lowerCommand.includes('credito')) {
+      setPaymentMethod('credit-card');
+      speak('Método de pagamento alterado para cartão');
+    } else if (lowerCommand.includes('pix')) {
+      setPaymentMethod('pix');
+      speak('Método de pagamento alterado para PIX');
+    } else if (lowerCommand.includes('bitcoin')) {
+      setPaymentMethod('bitcoin');
+      speak('Método de pagamento alterado para Bitcoin');
     } else if (lowerCommand.includes('confirmar') || lowerCommand.includes('solicitar')) {
       handleSubmit();
     }
@@ -144,7 +156,7 @@ export const RideRequestForm: React.FC<RideRequestFormProps> = ({ onBack }) => {
     if (isScheduled) {
       speak('Agendamento confirmado! Você receberá uma confirmação próximo ao horário.');
     } else {
-      speak('Solicitando corrida...');
+      speak(`Solicitando corrida com pagamento via ${getPaymentMethodName(paymentMethod)}...`);
     }
     
     // Simulate API call
@@ -171,6 +183,15 @@ export const RideRequestForm: React.FC<RideRequestFormProps> = ({ onBack }) => {
         setIsSubmitting(false);
       }
     }, 2000);
+  };
+
+  const getPaymentMethodName = (method: string) => {
+    switch (method) {
+      case 'credit-card': return 'cartão de crédito/débito';
+      case 'pix': return 'PIX';
+      case 'bitcoin': return 'Bitcoin';
+      default: return 'cartão de crédito/débito';
+    }
   };
 
   const handleSchedule = (data: any) => {
@@ -266,7 +287,7 @@ export const RideRequestForm: React.FC<RideRequestFormProps> = ({ onBack }) => {
 
       <VoiceInterface
         onCommand={handleVoiceCommand}
-        placeholder="Diga a origem e destino da sua viagem, ou 'agendar' para agendar"
+        placeholder="Diga a origem, destino, método de pagamento ou 'agendar'"
       />
 
       {isScheduled && scheduleData && (
@@ -337,6 +358,11 @@ export const RideRequestForm: React.FC<RideRequestFormProps> = ({ onBack }) => {
         </div>
       </Card>
 
+      <PaymentMethodSelector
+        selectedMethod={paymentMethod}
+        onMethodChange={setPaymentMethod}
+      />
+
       <Card className="p-6">
         <h3 className="text-lg font-semibold mb-4">
           Necessidades de Acessibilidade
@@ -371,8 +397,13 @@ export const RideRequestForm: React.FC<RideRequestFormProps> = ({ onBack }) => {
               <span>Calculando...</span>
             </div>
           ) : estimatedPrice ? (
-            <div className="text-2xl font-bold text-green-600">
-              R$ {estimatedPrice.toFixed(2)}
+            <div>
+              <div className="text-2xl font-bold text-green-600">
+                R$ {estimatedPrice.toFixed(2)}
+              </div>
+              <p className="text-sm text-muted-foreground mt-1">
+                Pagamento via {getPaymentMethodName(paymentMethod)}
+              </p>
             </div>
           ) : null}
         </Card>
