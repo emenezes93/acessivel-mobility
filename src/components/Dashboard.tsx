@@ -60,7 +60,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
             <div className="grid grid-cols-1 gap-4">
               <AccessibleButton
                 onClick={() => navigateToView('request-ride', 'Abrindo formulário de solicitação de corrida')}
-                variant="default"
+                variant="primary"
                 size="lg"
                 ariaLabel="Solicitar uma corrida"
                 className="h-20 text-lg"

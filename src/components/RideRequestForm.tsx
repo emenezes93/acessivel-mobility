@@ -247,7 +247,7 @@ export const RideRequestForm: React.FC<RideRequestFormProps> = ({ onBack }) => {
       <AccessibleButton
         onClick={handleSubmit}
         disabled={!origin.address || !destination.address || isSubmitting}
-        variant="default"
+        variant="primary"
         size="lg"
         ariaLabel="Confirmar solicitação de corrida"
         className="w-full h-16 text-lg"
