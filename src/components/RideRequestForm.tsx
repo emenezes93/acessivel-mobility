@@ -49,12 +49,14 @@ export const RideRequestForm: React.FC<RideRequestFormProps> = ({ onBack }) => {
 
   useEffect(() => {
     getCurrentLocation();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (origin.address && destination.address) {
       calculateEstimate();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [origin.address, destination.address, accessibilityNeeds, paymentMethod]);
 
   const getCurrentLocation = () => {
@@ -194,7 +196,13 @@ export const RideRequestForm: React.FC<RideRequestFormProps> = ({ onBack }) => {
     }
   };
 
-  const handleSchedule = (data: any) => {
+  interface ScheduleData {
+    date: string;
+    time: string;
+    [key: string]: string;
+  }
+
+  const handleSchedule = (data: ScheduleData) => {
     setScheduleData(data);
     setIsScheduled(true);
     setShowScheduler(false);
