@@ -1,23 +1,39 @@
+
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>acessivel-mobility-now</title>
-    <meta name="description" content="Lovable Generated Project" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>Mobilidade Acessível</title>
+    <meta name="description" content="Aplicativo de transporte inclusivo para todos" />
     <meta name="author" content="Lovable" />
 
-    <meta property="og:title" content="acessivel-mobility-now" />
-    <meta property="og:description" content="Lovable Generated Project" />
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#222.2 47.4% 11.2%" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Mobilidade Acessível" />
+
+    <!-- Prevent zoom on iOS -->
+    <meta name="format-detection" content="telephone=no" />
+    
+    <!-- Android -->
+    <meta name="mobile-web-app-capable" content="yes" />
+
+    <meta property="og:title" content="Mobilidade Acessível" />
+    <meta property="og:description" content="Aplicativo de transporte inclusivo para todos" />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@lovable_dev" />
     <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+
+    <!-- Preload critical resources -->
+    <link rel="preload" href="/src/main.tsx" as="script" />
   </head>
 
-  <body>
+  <body class="safe-area-top safe-area-bottom">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

@@ -121,6 +121,21 @@ All colors MUST be HSL.
     font-size: 16px;
   }
 
+  /* Mobile-first responsive design */
+  html {
+    font-size: 16px;
+  }
+
+  @media (max-width: 640px) {
+    html {
+      font-size: 14px;
+    }
+    
+    body {
+      font-size: 14px;
+    }
+  }
+
   /* Accessibility improvements */
   :focus-visible {
     @apply outline-none ring-4 ring-primary/50;
@@ -130,6 +145,14 @@ All colors MUST be HSL.
   button {
     min-height: 44px;
     min-width: 44px;
+  }
+
+  /* Mobile touch targets */
+  @media (max-width: 768px) {
+    button {
+      min-height: 48px;
+      min-width: 48px;
+    }
   }
 
   /* Improve link accessibility */
@@ -176,6 +199,16 @@ All colors MUST be HSL.
     margin: 4px;
   }
 
+  /* Mobile touch targets */
+  @media (max-width: 768px) {
+    .touch-target {
+      min-height: 48px;
+      min-width: 48px;
+      padding: 16px;
+      margin: 8px;
+    }
+  }
+
   /* Improve focus visibility */
   input:focus,
   select:focus,
@@ -206,6 +239,31 @@ All colors MUST be HSL.
   .skip-link:focus {
     top: 6px;
   }
+
+  /* Mobile viewport optimizations */
+  @supports (-webkit-touch-callout: none) {
+    /* iOS Safari specific styles */
+    .ios-fix {
+      -webkit-overflow-scrolling: touch;
+    }
+  }
+
+  /* Safe area for devices with notches */
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .safe-area-left {
+    padding-left: env(safe-area-inset-left);
+  }
+
+  .safe-area-right {
+    padding-right: env(safe-area-inset-right);
+  }
 }
 
 /* Additional accessibility utilities */
@@ -224,6 +282,16 @@ All colors MUST be HSL.
     border-radius: 8px;
     transition: all 0.2s ease;
   }
+
+  /* Mobile button improvements */
+  @media (max-width: 768px) {
+    .button-accessible {
+      min-height: 48px;
+      min-width: 48px;
+      padding: 16px 20px;
+      font-size: 16px;
+    }
+  }
   
   .button-accessible:hover {
     transform: scale(1.05);
@@ -236,5 +304,70 @@ All colors MUST be HSL.
   .high-contrast .button-accessible:hover,
   .high-contrast .button-accessible:active {
     transform: none;
+  }
+
+  /* Mobile-specific utilities */
+  .mobile-padding {
+    @apply px-4 py-2;
+  }
+
+  @media (max-width: 640px) {
+    .mobile-padding {
+      @apply px-2 py-1;
+    }
+  }
+
+  .mobile-text {
+    @apply text-base;
+  }
+
+  @media (max-width: 640px) {
+    .mobile-text {
+      @apply text-sm;
+    }
+  }
+
+  /* Prevent text selection on mobile for better UX */
+  .no-select {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+
+  /* Smooth scrolling for mobile */
+  .smooth-scroll {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+}
+
+/* Mobile-specific responsive adjustments */
+@media (max-width: 640px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  /* Adjust card spacing for mobile */
+  .space-y-6 > * + * {
+    margin-top: 1rem;
+  }
+
+  .space-y-4 > * + * {
+    margin-top: 0.75rem;
+  }
+
+  /* Mobile input improvements */
+  input, select, textarea {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+}
+
+/* Landscape mobile adjustments */
+@media (max-width: 896px) and (orientation: landscape) {
+  .mobile-landscape-padding {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
   }
 }
