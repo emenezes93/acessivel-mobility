@@ -4,6 +4,8 @@ import { VoiceInterface } from "@/components/VoiceInterface";
 import { RideScheduler } from "@/components/RideScheduler";
 import { DriverCommunication } from "@/components/DriverCommunication";
 import { PaymentMethodSelector } from "@/components/PaymentMethodSelector";
+import { LiveTracking } from "@/components/LiveTracking";
+import { useGeocoding } from "@/hooks/useGeocoding";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
@@ -41,9 +43,11 @@ export const RideRequestForm: React.FC<RideRequestFormProps> = ({ onBack }) => {
   const [scheduleData, setScheduleData] = useState<ScheduleData | null>(null);
   const [rideAccepted, setRideAccepted] = useState(false);
   const [driverInfo, setDriverInfo] = useState<any>(null);
+  const [showTracking, setShowTracking] = useState(false);
   
   const { speak, vibrate } = useAccessibility();
   const { user } = useUser();
+  const { geocodeAddress } = useGeocoding();
 
   const accessibilityOptions = [
     { id: 'wheelchair', label: 'Cadeira de rodas', icon: '♿' },
@@ -68,7 +72,7 @@ export const RideRequestForm: React.FC<RideRequestFormProps> = ({ onBack }) => {
   const getCurrentLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (position) => {
+        async (position) => {
           const location = {
             address: 'Localização atual',
             lat: position.coords.latitude,
@@ -228,6 +232,31 @@ export const RideRequestForm: React.FC<RideRequestFormProps> = ({ onBack }) => {
     speak('Localizando motorista no mapa');
   };
 
+  const toggleTracking = () => {
+    setShowTracking(!showTracking);
+    speak(showTracking ? 'Ocultando rastreamento' : 'Exibindo rastreamento da corrida');
+  };
+
+  if (showTracking && rideAccepted && driverInfo) {
+    return (
+      <LiveTracking
+        rideId="ride-123"
+        origin={{
+          address: origin.address,
+          lat: origin.lat || -23.5505,
+          lng: origin.lng || -46.6333
+        }}
+        destination={{
+          address: destination.address,
+          lat: destination.lat || -23.5489,
+          lng: destination.lng || -46.6388
+        }}
+        driverInfo={driverInfo}
+        onClose={() => setShowTracking(false)}
+      />
+    );
+  }
+
   if (rideAccepted && driverInfo) {
     return (
       <div className="space-y-6">
@@ -255,6 +284,18 @@ export const RideRequestForm: React.FC<RideRequestFormProps> = ({ onBack }) => {
           onMessage={handleDriverMessage}
           onLocateDriver={handleLocateDriver}
         />
+
+        <AccessibleButton
+          onClick={toggleTracking}
+          variant="primary"
+          className="w-full h-12"
+          ariaLabel="Ver rastreamento em tempo real"
+        >
+          <div className="flex items-center justify-center space-x-2">
+            <span>🛰️</span>
+            <span>Ver Rastreamento em Tempo Real</span>
+          </div>
+        </AccessibleButton>
       </div>
     );
   }
