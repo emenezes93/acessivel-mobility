@@ -155,8 +155,7 @@ export const DriverActiveRide: React.FC<DriverActiveRideProps> = ({
       'mobility-aid': 'Auxílio de mobilidade'
     };
     
-    // Verificação de segurança para evitar injeção de objeto
-    return Object.prototype.hasOwnProperty.call(needsMap, need) ? needsMap[need] : need;
+    return needsMap[need] || need;
   };
 
   return (
