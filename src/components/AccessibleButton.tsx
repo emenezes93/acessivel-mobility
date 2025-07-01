@@ -66,10 +66,15 @@ export const AccessibleButton: React.FC<AccessibleButtonProps> = ({
       onClick={handleClick}
       aria-label={ariaLabel}
       className={cn(
-        "min-h-[44px] min-w-[44px] text-lg font-semibold transition-all duration-200",
-        "focus:ring-4 focus:ring-primary/50 focus:outline-none",
-        "hover:scale-105 active:scale-95",
-        settings.reducedMotion && "hover:scale-100 active:scale-100 transition-none",
+        "min-h-[44px] min-w-[44px] font-medium transition-all duration-200",
+        "focus:ring-2 focus:ring-primary/20 focus:outline-none",
+        "active:scale-[0.98]",
+        // Uber-style button variants
+        variant === 'primary' && "bg-primary hover:bg-primary/90 text-white shadow-sm",
+        variant === 'outline' && "border-gray-200 hover:bg-gray-50 text-gray-700",
+        variant === 'ghost' && "hover:bg-gray-100 text-gray-700",
+        variant === 'secondary' && "bg-gray-100 hover:bg-gray-200 text-gray-700",
+        settings.reducedMotion && "active:scale-100 transition-none",
         className
       )}
     >

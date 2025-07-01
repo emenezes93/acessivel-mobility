@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { AccessibleButton } from "@/components/AccessibleButton";
 import { Card } from "@/components/ui/card";
@@ -89,7 +90,6 @@ export const DriverSettings: React.FC<DriverSettingsProps> = ({ onBack, onLogout
         <AccessibleButton
           onClick={onBack}
           variant="ghost"
-          size="sm"
           ariaLabel="Voltar ao menu principal"
         >
           Voltar
@@ -169,7 +169,7 @@ export const DriverSettings: React.FC<DriverSettingsProps> = ({ onBack, onLogout
               {['morning', 'afternoon', 'evening', 'night'].map((period) => (
                 <AccessibleButton
                   key={period}
-                  variant={workHours.includes(period) ? 'default' : 'outline'}
+                  variant={workHours.includes(period) ? 'primary' : 'outline'}
                   onClick={() => handleWorkHourToggle(period)}
                   ariaLabel={`${workHours.includes(period) ? 'Remover' : 'Adicionar'} período da ${getWorkHourLabel(period)}`}
                   className="justify-start"
@@ -188,28 +188,28 @@ export const DriverSettings: React.FC<DriverSettingsProps> = ({ onBack, onLogout
           <h3 className="text-lg font-semibold">Acessibilidade</h3>
           
           <div className="flex items-center justify-between">
-            <Label htmlFor="high-contrast" className="flex-1">
+            <Label htmlFor="contrast" className="flex-1">
               Alto contraste
             </Label>
             <Switch
-              id="high-contrast"
-              checked={settings?.highContrast || false}
+              id="contrast"
+              checked={settings?.contrast === 'high'}
               onCheckedChange={(checked) => {
-                updateSettings({ highContrast: checked });
+                updateSettings({ contrast: checked ? 'high' : 'normal' });
                 speak(checked ? 'Alto contraste ativado' : 'Alto contraste desativado');
               }}
             />
           </div>
           
           <div className="flex items-center justify-between">
-            <Label htmlFor="large-text" className="flex-1">
+            <Label htmlFor="font-size" className="flex-1">
               Texto grande
             </Label>
             <Switch
-              id="large-text"
-              checked={settings?.largeText || false}
+              id="font-size"
+              checked={settings?.fontSize === 'large' || settings?.fontSize === 'extra-large'}
               onCheckedChange={(checked) => {
-                updateSettings({ largeText: checked });
+                updateSettings({ fontSize: checked ? 'large' : 'normal' });
                 speak(checked ? 'Texto grande ativado' : 'Texto grande desativado');
               }}
             />

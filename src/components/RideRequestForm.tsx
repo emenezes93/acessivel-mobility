@@ -8,6 +8,12 @@ import { MapPlaceholder } from "@/components/MapPlaceholder";
 import { RideOptions } from "@/components/RideOptions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PaymentMethodSelector } from "@/components/PaymentMethodSelector";
+import { LiveTracking } from "@/components/LiveTracking";
+import { useGeocoding } from "@/hooks/useGeocoding";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useAccessibility } from "@/contexts/AccessibilityContext";
 import { useUser } from "@/contexts/UserContext";
 import { ArrowLeft, Mic, Map } from 'lucide-react';
@@ -25,6 +31,7 @@ interface Location {
 interface ScheduleData {
   date: string;
   time: string;
+  isRecurring?: boolean;
 }
 
 export const RideRequestForm: React.FC<RideRequestFormProps> = ({ onBack }) => {
@@ -41,9 +48,10 @@ export const RideRequestForm: React.FC<RideRequestFormProps> = ({ onBack }) => {
   const [scheduleData, setScheduleData] = useState<ScheduleData | null>(null);
   const [rideAccepted, setRideAccepted] = useState(false);
   const [driverInfo, setDriverInfo] = useState<any>(null);
-
+  const [showTracking, setShowTracking] = useState(false);
   const { speak, vibrate } = useAccessibility();
   const { user } = useUser();
+  const { geocodeAddress } = useGeocoding();
 
   const accessibilityOptions = [
     { id: 'wheelchair', label: 'Cadeira de rodas', icon: '♿' },
@@ -68,7 +76,7 @@ export const RideRequestForm: React.FC<RideRequestFormProps> = ({ onBack }) => {
   const getCurrentLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (position) => {
+        async (position) => {
           const location = {
             address: 'Sua localização atual',
             lat: position.coords.latitude,
@@ -152,20 +160,122 @@ export const RideRequestForm: React.FC<RideRequestFormProps> = ({ onBack }) => {
     }, 2500);
   };
 
-  const handleSchedule = (data: ScheduleData) => {
+  const getPaymentMethodName = (method: string) => {
+    switch (method) {
+      case 'credit-card': return 'cartão de crédito/débito';
+      case 'pix': return 'PIX';
+      case 'bitcoin': return 'Bitcoin';
+      default: return 'cartão de crédito/débito';
+    }
+  };
+
+  const handleSchedule = (scheduleData: { date: string; time: string; isRecurring: boolean; }) => {
+    const data: ScheduleData = {
+      date: scheduleData.date,
+      time: scheduleData.time,
+      isRecurring: scheduleData.isRecurring
+    };
     setScheduleData(data);
     setIsScheduled(true);
     setShowScheduler(false);
     speak(`Corrida agendada para ${data.date} às ${data.time}.`);
   };
 
+  const toggleTracking = () => {
+    setShowTracking(!showTracking);
+    speak(showTracking ? 'Ocultando rastreamento' : 'Exibindo rastreamento da corrida');
+  };
+
+  if (showTracking && rideAccepted && driverInfo) {
+    return (
+      <LiveTracking
+        rideId="ride-123"
+        origin={{
+          address: origin.address,
+          lat: origin.lat || -23.5505,
+          lng: origin.lng || -46.6333
+        }}
+        destination={{
+          address: destination.address,
+          lat: destination.lat || -23.5489,
+          lng: destination.lng || -46.6388
+        }}
+        driverInfo={driverInfo}
+        onClose={() => setShowTracking(false)}
+      />
+    );
+  }
+
   if (rideAccepted && driverInfo) {
     return (
-      <DriverCommunication 
-        driver={driverInfo} 
-        onCancel={() => { setRideAccepted(false); setDriverInfo(null); onBack(); }} 
-        onComplete={() => { setRideAccepted(false); setDriverInfo(null); onBack(); }}
-      />
+      <div className="space-y-6">
+        <div className="flex items-center space-x-4 mb-6">
+          <AccessibleButton
+            onClick={onBack}
+            variant="outline"
+            ariaLabel="Voltar ao menu principal"
+            className="h-12 w-12"
+          >
+            ←
+          </AccessibleButton>
+          <h2 className="text-2xl font-bold">Corrida Aceita</h2>
+        </div>
+
+        <div className="text-center space-y-4">
+          <div className="text-6xl">🚗</div>
+          <h3 className="text-xl font-bold text-green-600">Motorista a caminho!</h3>
+          <p className="text-lg">Tempo estimado: 8 minutos</p>
+        </div>
+
+        <DriverCommunication
+          driverInfo={driverInfo}
+          onCall={() => {
+            speak(`Ligando para o motorista ${driverInfo.name}`);
+            vibrate(300);
+          }}
+          onMessage={() => {
+            speak('Abrindo chat com o motorista');
+          }}
+          onLocateDriver={() => {
+            speak('Localizando motorista no mapa');
+          }}
+        />
+
+        <AccessibleButton
+          onClick={toggleTracking}
+          variant="primary"
+          className="w-full h-12"
+          ariaLabel="Ver rastreamento em tempo real"
+        >
+          <div className="flex items-center justify-center space-x-2">
+            <span>🛰️</span>
+            <span>Ver Rastreamento em Tempo Real</span>
+          </div>
+        </AccessibleButton>
+      </div>
+    );
+  }
+
+  if (showScheduler) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center space-x-4 mb-6">
+          <AccessibleButton
+            onClick={() => setShowScheduler(false)}
+            variant="outline"
+            ariaLabel="Voltar ao formulário"
+            className="h-12 w-12"
+          >
+            ←
+          </AccessibleButton>
+          <h2 className="text-2xl font-bold">Agendar Corrida</h2>
+        </div>
+
+        <RideScheduler
+          onSchedule={handleSchedule}
+          onCancel={() => setShowScheduler(false)}
+        />
+      </div>
     );
   }
 

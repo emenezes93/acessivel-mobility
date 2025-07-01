@@ -3,6 +3,7 @@ import { AccessibleButton } from "@/components/AccessibleButton";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { LiveTracking } from "@/components/LiveTracking";
 import { useAccessibility } from "@/contexts/AccessibilityContext";
 
 interface DriverActiveRideProps {
@@ -38,6 +39,8 @@ export const DriverActiveRide: React.FC<DriverActiveRideProps> = ({
   onStatusChange
 }) => {
   const { speak, vibrate } = useAccessibility();
+  const [showTracking, setShowTracking] = useState(false);
+  
   const [rideInfo, setRideInfo] = useState<RideInfo>(ride || {
     id: 'ride-123',
     origin: 'Av. Paulista, 1000, São Paulo',
@@ -158,6 +161,36 @@ export const DriverActiveRide: React.FC<DriverActiveRideProps> = ({
     return needsMap[need] || need;
   };
 
+  const toggleTracking = () => {
+    setShowTracking(!showTracking);
+    speak(showTracking ? 'Ocultando rastreamento' : 'Exibindo rastreamento em tempo real');
+  };
+
+  if (showTracking) {
+    return (
+      <LiveTracking
+        rideId={rideInfo.id}
+        origin={{
+          address: rideInfo.origin,
+          lat: -23.5505,
+          lng: -46.6333
+        }}
+        destination={{
+          address: rideInfo.destination,
+          lat: -23.5489,
+          lng: -46.6388
+        }}
+        driverInfo={{
+          name: 'Você (Motorista)',
+          vehicle: 'Seu veículo',
+          plate: 'ABC-1234',
+          rating: 4.8
+        }}
+        onClose={() => setShowTracking(false)}
+      />
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between mb-4">
@@ -273,6 +306,15 @@ export const DriverActiveRide: React.FC<DriverActiveRideProps> = ({
           >
             <span className="text-xl mb-1">🧭</span>
             <span className="text-sm">Navegar</span>
+          </AccessibleButton>
+          <AccessibleButton
+            onClick={toggleTracking}
+            variant="outline"
+            className="flex flex-col items-center justify-center py-2"
+            ariaLabel="Ver rastreamento em tempo real"
+          >
+            <span className="text-xl mb-1">🛰️</span>
+            <span className="text-sm">Tracking</span>
           </AccessibleButton>
         </div>
       </Card>
