@@ -21,6 +21,12 @@ interface Location {
   lng?: number;
 }
 
+interface ScheduleData {
+  date: string;
+  time: string;
+  isRecurring?: boolean;
+}
+
 export const RideRequestForm: React.FC<RideRequestFormProps> = ({ onBack }) => {
   const [origin, setOrigin] = useState<Location>({ address: '' });
   const [destination, setDestination] = useState<Location>({ address: '' });
@@ -32,7 +38,7 @@ export const RideRequestForm: React.FC<RideRequestFormProps> = ({ onBack }) => {
   const [currentLocation, setCurrentLocation] = useState<Location | null>(null);
   const [showScheduler, setShowScheduler] = useState(false);
   const [isScheduled, setIsScheduled] = useState(false);
-  const [scheduleData, setScheduleData] = useState<any>(null);
+  const [scheduleData, setScheduleData] = useState<ScheduleData | null>(null);
   const [rideAccepted, setRideAccepted] = useState(false);
   const [driverInfo, setDriverInfo] = useState<any>(null);
   
@@ -196,13 +202,12 @@ export const RideRequestForm: React.FC<RideRequestFormProps> = ({ onBack }) => {
     }
   };
 
-  interface ScheduleData {
-    date: string;
-    time: string;
-    [key: string]: string;
-  }
-
-  const handleSchedule = (data: ScheduleData) => {
+  const handleSchedule = (scheduleData: { date: string; time: string; isRecurring: boolean; }) => {
+    const data: ScheduleData = {
+      date: scheduleData.date,
+      time: scheduleData.time,
+      isRecurring: scheduleData.isRecurring
+    };
     setScheduleData(data);
     setIsScheduled(true);
     setShowScheduler(false);
