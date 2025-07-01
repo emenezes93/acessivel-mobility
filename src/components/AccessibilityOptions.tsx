@@ -1,6 +1,6 @@
 import React from 'react';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { Wheelchair, Ear, Eye } from 'lucide-react';
+import { Accessibility, Ear, Eye } from 'lucide-react';
 
 interface AccessibilityOptionsProps {
   options: string[];
@@ -9,7 +9,7 @@ interface AccessibilityOptionsProps {
 
 export const AccessibilityOptions: React.FC<AccessibilityOptionsProps> = ({ options, onToggle }) => {
   const accessibilityItems = [
-    { id: 'wheelchair', label: 'Cadeirante', icon: Wheelchair },
+    { id: 'wheelchair', label: 'Cadeirante', icon: Accessibility },
     { id: 'hearingImpaired', label: 'Def. Auditivo', icon: Ear },
     { id: 'visuallyImpaired', label: 'Def. Visual', icon: Eye },
   ];
