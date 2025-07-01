@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { AccessibleButton } from "@/components/AccessibleButton";
 import { Card } from "@/components/ui/card";
@@ -9,6 +10,7 @@ import { DriverProfile } from "@/components/DriverProfile";
 import { DriverEarnings } from "@/components/DriverEarnings";
 import { DriverSettings } from "@/components/DriverSettings";
 import { DriverActiveRide } from "@/components/DriverActiveRide";
+import { Car, DollarSign, User, Settings, LogOut, MapPin } from "lucide-react";
 
 interface DriverDashboardProps {
   onLogout: () => void;
@@ -84,12 +86,13 @@ export const DriverDashboard: React.FC<DriverDashboardProps> = ({ onLogout }) =>
             }}
           />
         ) : (
-          <div className="text-center p-6">
-            <p className="text-lg">Nenhuma corrida ativa no momento.</p>
+          <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6">
+            <div className="text-6xl mb-4">🚗</div>
+            <p className="text-lg text-gray-700 mb-6">Nenhuma corrida ativa no momento.</p>
             <AccessibleButton
               onClick={() => navigateToView('home', 'Voltando ao menu principal')}
               variant="primary"
-              className="mt-4"
+              className="px-8 h-12 rounded-lg"
             >
               Voltar ao Menu
             </AccessibleButton>
@@ -103,163 +106,157 @@ export const DriverDashboard: React.FC<DriverDashboardProps> = ({ onLogout }) =>
         return <DriverSettings onBack={() => navigateToView('home', 'Voltando ao menu principal')} onLogout={handleLogout} />;
       default:
         return (
-          <div className="space-y-6">
-            <Card className="p-6">
-              <div className="text-center space-y-4">
-                <div className="text-4xl" role="img" aria-label="Bem-vindo">
-                  👋
+          <div className="min-h-screen bg-white">
+            {/* Header with status toggle */}
+            <div className="bg-white shadow-sm border-b border-gray-100 px-4 py-6 safe-area-top">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h1 className="text-xl font-semibold text-gray-900">
+                    Olá, {user?.name}
+                  </h1>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Motorista • {isAvailable ? 'Online' : 'Offline'}
+                  </p>
                 </div>
-                <h2 className="text-2xl font-bold">
-                  Olá, {user?.name}!
-                </h2>
-                <div className="mt-4">
+                <div className="flex items-center space-x-2">
                   <AccessibleButton
-                    onClick={toggleAvailability}
-                    variant={isAvailable ? 'primary' : 'secondary'}
-                    size="lg"
-                    ariaLabel={isAvailable ? 'Você está online' : 'Você está offline'}
-                    className="w-full h-14 text-lg"
+                    onClick={() => navigateToView('settings', 'Abrindo configurações')}
+                    variant="ghost"
+                    ariaLabel="Configurações"
+                    className="h-10 w-10 rounded-full"
                   >
-                    <div className="flex items-center justify-center space-x-2">
-                      <div className={`w-3 h-3 rounded-full ${isAvailable ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                      <span>{isAvailable ? 'Online' : 'Offline'}</span>
-                    </div>
+                    <Settings className="h-5 w-5" />
+                  </AccessibleButton>
+                  <AccessibleButton
+                    onClick={handleLogout}
+                    variant="ghost"
+                    ariaLabel="Sair"
+                    className="h-10 w-10 rounded-full"
+                  >
+                    <LogOut className="h-5 w-5" />
                   </AccessibleButton>
                 </div>
               </div>
-            </Card>
 
-            <div className="grid grid-cols-1 gap-4">
+              {/* Online/Offline Toggle */}
               <AccessibleButton
-                onClick={() => navigateToView('available-rides', 'Verificando corridas disponíveis')}
-                variant="primary"
-                size="lg"
-                ariaLabel="Ver corridas disponíveis"
-                className="h-20 text-lg"
-                disabled={!isAvailable}
+                onClick={toggleAvailability}
+                variant={isAvailable ? 'primary' : 'secondary'}
+                className="w-full h-14 rounded-lg font-medium"
+                ariaLabel={isAvailable ? 'Você está online' : 'Você está offline'}
               >
-                <div className="flex items-center space-x-3">
-                  <span className="text-2xl">🚕</span>
-                  <span>Corridas Disponíveis</span>
+                <div className="flex items-center justify-center space-x-3">
+                  <div className={`w-3 h-3 rounded-full ${isAvailable ? 'bg-white' : 'bg-green-500'}`}></div>
+                  <span>{isAvailable ? 'Você está online' : 'Ficar online'}</span>
                 </div>
               </AccessibleButton>
+            </div>
 
-              {activeRide && (
+            {/* Active ride banner */}
+            {activeRide && (
+              <div className="px-4 py-3 bg-primary/10 border-b border-primary/20">
                 <AccessibleButton
-                  onClick={() => navigateToView('active-ride', 'Abrindo detalhes da corrida ativa')}
-                  variant="primary"
-                  size="lg"
+                  onClick={() => navigateToView('active-ride', 'Abrindo corrida ativa')}
+                  variant="ghost"
+                  className="w-full p-3 bg-white rounded-lg border border-primary/20"
                   ariaLabel="Ver corrida ativa"
-                  className="h-20 text-lg"
                 >
                   <div className="flex items-center space-x-3">
-                    <span className="text-2xl">🚗</span>
-                    <span>Corrida Ativa</span>
+                    <Car className="h-5 w-5 text-primary" />
+                    <div className="flex-1 text-left">
+                      <p className="font-medium text-gray-900">Corrida ativa</p>
+                      <p className="text-sm text-gray-600">Toque para ver detalhes</p>
+                    </div>
                   </div>
                 </AccessibleButton>
-              )}
+              </div>
+            )}
 
-              <AccessibleButton
-                onClick={() => navigateToView('earnings', 'Abrindo ganhos')}
-                variant="outline"
-                size="lg"
-                ariaLabel="Ver ganhos"
-                className="h-20 text-lg"
-              >
-                <div className="flex items-center space-x-3">
-                  <span className="text-2xl">💰</span>
-                  <span>Ganhos</span>
-                </div>
-              </AccessibleButton>
-
-              <AccessibleButton
-                onClick={() => navigateToView('profile', 'Abrindo perfil')}
-                variant="outline"
-                size="lg"
-                ariaLabel="Ver perfil"
-                className="h-20 text-lg"
-              >
-                <div className="flex items-center space-x-3">
-                  <span className="text-2xl">👤</span>
-                  <span>Perfil</span>
-                </div>
-              </AccessibleButton>
+            {/* Main Actions */}
+            <div className="px-4 py-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                Ações principais
+              </h2>
               
-              <AccessibleButton
-                onClick={() => navigateToView('settings', 'Abrindo configurações')}
-                variant="outline"
-                size="lg"
-                ariaLabel="Ver configurações"
-                className="h-20 text-lg"
-              >
-                <div className="flex items-center space-x-3">
-                  <span className="text-2xl">⚙️</span>
-                  <span>Configurações</span>
-                </div>
-              </AccessibleButton>
+              <div className="space-y-3">
+                <AccessibleButton
+                  onClick={() => navigateToView('available-rides', 'Verificando corridas disponíveis')}
+                  variant="outline"
+                  disabled={!isAvailable}
+                  className="w-full h-16 justify-start bg-white border-gray-200 hover:bg-gray-50 rounded-xl"
+                  ariaLabel="Ver corridas disponíveis"
+                >
+                  <div className="flex items-center space-x-4">
+                    <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                      <MapPin className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="text-left">
+                      <p className="font-medium text-gray-900">Corridas disponíveis</p>
+                      <p className="text-sm text-gray-500">Veja solicitações próximas</p>
+                    </div>
+                  </div>
+                </AccessibleButton>
 
-              <AccessibleButton
-                onClick={handleLogout}
-                variant="secondary"
-                size="lg"
-                ariaLabel="Sair da conta"
-                className="h-20 text-lg"
-              >
-                <div className="flex items-center space-x-3">
-                  <span className="text-2xl">🚪</span>
-                  <span>Sair</span>
+                <AccessibleButton
+                  onClick={() => navigateToView('earnings', 'Abrindo ganhos')}
+                  variant="outline"
+                  className="w-full h-16 justify-start bg-white border-gray-200 hover:bg-gray-50 rounded-xl"
+                  ariaLabel="Ver ganhos"
+                >
+                  <div className="flex items-center space-x-4">
+                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                      <DollarSign className="h-5 w-5 text-green-600" />
+                    </div>
+                    <div className="text-left">
+                      <p className="font-medium text-gray-900">Ganhos</p>
+                      <p className="text-sm text-gray-500">R$ 245,80 esta semana</p>
+                    </div>
+                  </div>
+                </AccessibleButton>
+
+                <AccessibleButton
+                  onClick={() => navigateToView('profile', 'Abrindo perfil')}
+                  variant="outline"
+                  className="w-full h-16 justify-start bg-white border-gray-200 hover:bg-gray-50 rounded-xl"
+                  ariaLabel="Ver perfil"
+                >
+                  <div className="flex items-center space-x-4">
+                    <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                      <User className="h-5 w-5 text-gray-600" />
+                    </div>
+                    <div className="text-left">
+                      <p className="font-medium text-gray-900">Perfil</p>
+                      <p className="text-sm text-gray-500">Informações pessoais</p>
+                    </div>
+                  </div>
+                </AccessibleButton>
+              </div>
+            </div>
+
+            {/* Quick Stats */}
+            <div className="px-4 mb-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                Hoje
+              </h2>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-gray-50 p-4 rounded-xl">
+                  <p className="text-2xl font-bold text-gray-900">12</p>
+                  <p className="text-sm text-gray-600">Corridas</p>
                 </div>
-              </AccessibleButton>
+                <div className="bg-gray-50 p-4 rounded-xl">
+                  <p className="text-2xl font-bold text-green-600">R$ 89</p>
+                  <p className="text-sm text-gray-600">Ganhos</p>
+                </div>
+              </div>
             </div>
           </div>
         );
     }
   };
 
-  // Funções auxiliares para acessibilidade
-  const getAccessibilityIcon = (need: string) => {
-    const iconMap: { [key: string]: string } = {
-      'wheelchair': '♿',
-      'guide-dog': '🦮',
-      'hearing-assistance': '🦻',
-      'visual-assistance': '👁️',
-      'mobility-assistance': '🦯'
-    };
-    
-    return iconMap[need] || '🔧';
-  };
-
-  const getAccessibilityLabel = (need: string) => {
-    const labelMap: { [key: string]: string } = {
-      'wheelchair': 'Cadeira de rodas',
-      'guide-dog': 'Cão guia',
-      'hearing-assistance': 'Assistência auditiva',
-      'visual-assistance': 'Assistência visual',
-      'mobility-assistance': 'Assistência para mobilidade'
-    };
-    
-    return labelMap[need] || need;
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 p-4">
-      <div className="max-w-md mx-auto">
-        <header className="mb-6 pt-20">
-          <h1 className="text-3xl font-bold text-center text-primary">
-            Mobilidade Acessível
-          </h1>
-          {isAvailable && (
-            <p className="text-center text-sm mt-2">
-              <span className="inline-block w-2 h-2 rounded-full bg-green-500 mr-1"></span>
-              Motorista Online
-            </p>
-          )}
-        </header>
-
-        <main>
-          {renderView()}
-        </main>
-      </div>
+    <div className="min-h-screen bg-white">
+      {renderView()}
     </div>
   );
 };

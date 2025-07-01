@@ -10,47 +10,47 @@ All colors MUST be HSL.
 @layer base {
   :root {
     /* Paleta de Cores Acessível */
-    --background: 0 0% 98%; /* #FAFAFA - Branco Neve */
-    --foreground: 0 0% 10%; /* #1A1A1A - Cinza Escuro Acessível */
+    --background: 0 0% 100%; /* #FFFFFF - Branco puro para estilo Uber */
+    --foreground: 0 0% 9%; /* #171717 - Preto mais suave */
 
-    --card: 0 0% 98%; /* #FAFAFA - Branco Neve */
-    --card-foreground: 0 0% 10%; /* #1A1A1A - Cinza Escuro Acessível */
+    --card: 0 0% 100%; /* #FFFFFF - Branco puro */
+    --card-foreground: 0 0% 9%; /* #171717 - Preto mais suave */
 
-    --popover: 0 0% 98%; /* #FAFAFA - Branco Neve */
-    --popover-foreground: 0 0% 10%; /* #1A1A1A - Cinza Escuro Acessível */
+    --popover: 0 0% 100%; /* #FFFFFF - Branco puro */
+    --popover-foreground: 0 0% 9%; /* #171717 - Preto mais suave */
 
     --primary: 214 100% 37%; /* #005BBB - Azul Acessível */
-    --primary-foreground: 0 0% 98%; /* #FAFAFA - Branco Neve */
+    --primary-foreground: 0 0% 100%; /* #FFFFFF - Branco puro */
 
-    --secondary: 0 0% 80%; /* #CCCCCC - Base Neutra */
-    --secondary-foreground: 0 0% 10%; /* #1A1A1A - Cinza Escuro Acessível */
+    --secondary: 0 0% 96%; /* #F5F5F5 - Cinza muito claro estilo Uber */
+    --secondary-foreground: 0 0% 9%; /* #171717 - Preto mais suave */
 
-    --muted: 0 0% 80%; /* #CCCCCC - Base Neutra */
+    --muted: 0 0% 96%; /* #F5F5F5 - Cinza muito claro */
     --muted-foreground: 0 0% 45%; /* Cinza médio para texto secundário */
 
     --accent: 51 100% 50%; /* #FFD600 - Amarelo Seguro */
-    --accent-foreground: 0 0% 10%; /* #1A1A1A - Cinza Escuro Acessível */
+    --accent-foreground: 0 0% 9%; /* #171717 - Preto mais suave */
 
     --destructive: 0 70% 50%; /* #D32F2F - Vermelho Acessível */
-    --destructive-foreground: 0 0% 98%; /* #FAFAFA - Branco Neve */
+    --destructive-foreground: 0 0% 100%; /* #FFFFFF - Branco puro */
 
     --success: 122 39% 49%; /* #388E3C - Verde Positivo */
-    --success-foreground: 0 0% 98%; /* #FAFAFA - Branco Neve */
+    --success-foreground: 0 0% 100%; /* #FFFFFF - Branco puro */
 
-    --border: 0 0% 80%; /* #CCCCCC - Base Neutra */
-    --input: 0 0% 80%; /* #CCCCCC - Base Neutra */
+    --border: 0 0% 90%; /* #E5E5E5 - Borda sutil estilo Uber */
+    --input: 0 0% 96%; /* #F5F5F5 - Input background */
     --ring: 214 100% 37%; /* #005BBB - Azul Acessível */
 
-    --radius: 0.5rem;
+    --radius: 0.75rem; /* Bordas mais arredondadas estilo Uber */
 
     /* Sidebar colors using the new palette */
-    --sidebar-background: 0 0% 98%; /* #FAFAFA - Branco Neve */
-    --sidebar-foreground: 0 0% 10%; /* #1A1A1A - Cinza Escuro Acessível */
+    --sidebar-background: 0 0% 100%; /* #FFFFFF - Branco puro */
+    --sidebar-foreground: 0 0% 9%; /* #171717 - Preto mais suave */
     --sidebar-primary: 214 100% 37%; /* #005BBB - Azul Acessível */
-    --sidebar-primary-foreground: 0 0% 98%; /* #FAFAFA - Branco Neve */
-    --sidebar-accent: 0 0% 80%; /* #CCCCCC - Base Neutra */
-    --sidebar-accent-foreground: 0 0% 10%; /* #1A1A1A - Cinza Escuro Acessível */
-    --sidebar-border: 0 0% 80%; /* #CCCCCC - Base Neutra */
+    --sidebar-primary-foreground: 0 0% 100%; /* #FFFFFF - Branco puro */
+    --sidebar-accent: 0 0% 96%; /* #F5F5F5 - Cinza muito claro */
+    --sidebar-accent-foreground: 0 0% 9%; /* #171717 - Preto mais suave */
+    --sidebar-border: 0 0% 90%; /* #E5E5E5 - Borda sutil */
     --sidebar-ring: 214 100% 37%; /* #005BBB - Azul Acessível */
   }
 
@@ -130,8 +130,10 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    line-height: 1.6;
+    line-height: 1.5;
     font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   /* Mobile-first responsive design */
@@ -149,9 +151,18 @@ All colors MUST be HSL.
     }
   }
 
+  /* Uber-style shadows */
+  .shadow-uber {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .shadow-uber-sm {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+
   /* Accessibility improvements */
   :focus-visible {
-    @apply outline-none ring-4 ring-primary/50;
+    @apply outline-none ring-2 ring-primary/20;
   }
 
   /* Ensure buttons are accessible */
@@ -170,6 +181,10 @@ All colors MUST be HSL.
 
   /* Improve link accessibility */
   a {
+    text-decoration: none;
+  }
+
+  a:hover {
     text-decoration: underline;
     text-underline-offset: 4px;
   }
@@ -204,36 +219,19 @@ All colors MUST be HSL.
     border: 2px solid currentColor !important;
   }
 
-  /* Ensure adequate spacing for touch targets */
-  .touch-target {
-    min-height: 44px;
-    min-width: 44px;
-    padding: 12px;
-    margin: 4px;
+  /* Uber-style input focus */
+  input:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px hsl(var(--primary) / 0.2);
+    border-color: hsl(var(--primary));
   }
 
-  /* Mobile touch targets */
-  @media (max-width: 768px) {
-    .touch-target {
-      min-height: 48px;
-      min-width: 48px;
-      padding: 16px;
-      margin: 8px;
-    }
-  }
-
-  /* Improve focus visibility */
-  input:focus,
+  /* Improved focus visibility */
   select:focus,
   textarea:focus,
   button:focus {
-    outline: 3px solid hsl(var(--primary));
+    outline: 2px solid hsl(var(--primary));
     outline-offset: 2px;
-  }
-
-  /* Ensure text is readable */
-  p, span, div {
-    color: contrast(var(--foreground));
   }
 
   /* Skip link for keyboard navigation */
@@ -251,14 +249,6 @@ All colors MUST be HSL.
 
   .skip-link:focus {
     top: 6px;
-  }
-
-  /* Mobile viewport optimizations */
-  @supports (-webkit-touch-callout: none) {
-    /* iOS Safari specific styles */
-    .ios-fix {
-      -webkit-overflow-scrolling: touch;
-    }
   }
 
   /* Safe area for devices with notches */
@@ -290,9 +280,9 @@ All colors MUST be HSL.
     min-height: 44px;
     min-width: 44px;
     padding: 12px 16px;
-    font-size: 18px;
-    font-weight: 600;
-    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    border-radius: 12px;
     transition: all 0.2s ease;
   }
 
@@ -307,11 +297,11 @@ All colors MUST be HSL.
   }
   
   .button-accessible:hover {
-    transform: scale(1.05);
+    transform: scale(1.02);
   }
   
   .button-accessible:active {
-    transform: scale(0.95);
+    transform: scale(0.98);
   }
   
   .high-contrast .button-accessible:hover,
@@ -369,6 +359,16 @@ All colors MUST be HSL.
   .smooth-scroll {
     -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
+  }
+
+  /* Uber-style card */
+  .card-uber {
+    @apply bg-white rounded-xl shadow-uber border border-gray-100;
+  }
+
+  /* Uber-style input */
+  .input-uber {
+    @apply bg-gray-50 border-gray-200 rounded-lg h-12 px-4 focus:bg-white focus:border-primary;
   }
 }
 

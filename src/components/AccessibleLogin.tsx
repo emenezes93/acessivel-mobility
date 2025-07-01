@@ -89,201 +89,166 @@ export const AccessibleLogin: React.FC<AccessibleLoginProps> = ({ onLogin }) => 
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-blue-50 to-green-50">
-      <Card className="w-full max-w-md p-8 space-y-6">
-        <div className="text-center space-y-4">
-          <div className="text-6xl mb-4" role="img" aria-label="Ícone de acessibilidade">
-            ♿
+    <div className="min-h-screen bg-white flex flex-col">
+      {/* Header with logo - Uber style */}
+      <div className="bg-white px-6 pt-16 pb-8 safe-area-top">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-2xl text-white">♿</span>
           </div>
-          <h1 className="text-3xl font-bold text-primary">
+          <h1 className="text-2xl font-semibold text-gray-900 mb-2">
             Mobilidade Acessível
           </h1>
-          <p className="text-lg text-muted-foreground">
+          <p className="text-gray-600">
             Transporte inclusivo para todos
           </p>
         </div>
+      </div>
 
-        <VoiceInterface
-          onCommand={handleVoiceCommand}
-          placeholder="Diga 'entrar', 'cadastro', 'passageiro' ou 'motorista'"
-        />
+      <div className="flex-1 px-6">
+        {/* User type selector */}
+        <div className="mb-6">
+          <Tabs 
+            value={userType} 
+            onValueChange={(value) => {
+              setUserType(value as 'passenger' | 'driver');
+              speak(value === 'passenger' ? 'Modo passageiro selecionado' : 'Modo motorista selecionado');
+            }}
+          >
+            <TabsList className="grid w-full grid-cols-2 bg-gray-100">
+              <TabsTrigger 
+                value="passenger" 
+                className="data-[state=active]:bg-white data-[state=active]:text-gray-900"
+              >
+                Passageiro
+              </TabsTrigger>
+              <TabsTrigger 
+                value="driver"
+                className="data-[state=active]:bg-white data-[state=active]:text-gray-900"
+              >
+                Motorista
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
 
-        <div className="flex space-x-2">
+        {/* Voice Interface */}
+        <div className="mb-6">
+          <VoiceInterface
+            onCommand={handleVoiceCommand}
+            placeholder="Diga 'entrar', 'cadastro', 'passageiro' ou 'motorista'"
+          />
+        </div>
+
+        {/* Login/Register toggle */}
+        <div className="flex bg-gray-100 rounded-lg p-1 mb-6">
           <AccessibleButton
-            variant={isLogin ? 'primary' : 'secondary'}
+            variant={isLogin ? 'primary' : 'ghost'}
             onClick={() => {
               setIsLogin(true);
               speak('Modo de login selecionado');
             }}
-            ariaLabel="Selecionar modo de login"
-            className="flex-1"
+            className="flex-1 h-10 text-sm"
+            ariaLabel="Modo de login"
           >
             Entrar
           </AccessibleButton>
           <AccessibleButton
-            variant={!isLogin ? 'primary' : 'secondary'}
+            variant={!isLogin ? 'primary' : 'ghost'}
             onClick={() => {
               setIsLogin(false);
               speak('Modo de cadastro selecionado');
             }}
-            ariaLabel="Selecionar modo de cadastro"
-            className="flex-1"
+            className="flex-1 h-10 text-sm"
+            ariaLabel="Modo de cadastro"
           >
-            Cadastro
+            Cadastrar
           </AccessibleButton>
         </div>
-        
-        <Tabs 
-          value={userType} 
-          onValueChange={(value) => {
-            setUserType(value as 'passenger' | 'driver');
-            speak(value === 'passenger' ? 'Modo passageiro selecionado' : 'Modo motorista selecionado');
-          }}
-          className="mt-4"
-        >
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="passenger" aria-label="Entrar como passageiro">
-              Passageiro
-            </TabsTrigger>
-            <TabsTrigger value="driver" aria-label="Entrar como motorista">
-              Motorista
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
 
+        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           {!isLogin && (
-            <div className="space-y-2">
-              <Label htmlFor="name" className="text-lg font-medium">
-                Nome completo
-              </Label>
+            <div>
               <Input
-                id="name"
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required={!isLogin}
-                className="h-12 text-lg"
-                placeholder="Seu nome completo"
-                aria-describedby="name-help"
+                className="h-12 bg-gray-50 border-gray-200 rounded-lg"
+                placeholder="Nome completo"
               />
-              <p id="name-help" className="text-sm text-muted-foreground">
-                Digite seu nome completo
-              </p>
             </div>
           )}
 
-          <div className="space-y-2">
-            <Label htmlFor="email" className="text-lg font-medium">
-              E-mail
-            </Label>
+          <div>
             <Input
-              id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="h-12 text-lg"
-              placeholder="seu.email@exemplo.com"
-              aria-describedby="email-help"
+              className="h-12 bg-gray-50 border-gray-200 rounded-lg"
+              placeholder="E-mail"
             />
-            <p id="email-help" className="text-sm text-muted-foreground">
-              Digite seu endereço de e-mail
-            </p>
           </div>
 
           {!isLogin && (
-            <div className="space-y-2">
-              <Label htmlFor="phone" className="text-lg font-medium">
-                Telefone
-              </Label>
+            <div>
               <Input
-                id="phone"
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 required={!isLogin}
-                className="h-12 text-lg"
-                placeholder="(11) 99999-9999"
-                aria-describedby="phone-help"
+                className="h-12 bg-gray-50 border-gray-200 rounded-lg"
+                placeholder="Telefone"
               />
-              <p id="phone-help" className="text-sm text-muted-foreground">
-                Digite seu número de telefone
-              </p>
             </div>
           )}
 
-          <div className="space-y-2">
-            <Label htmlFor="password" className="text-lg font-medium">
-              Senha
-            </Label>
+          <div>
             <Input
-              id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="h-12 text-lg"
-              placeholder="Sua senha"
-              aria-describedby="password-help"
+              className="h-12 bg-gray-50 border-gray-200 rounded-lg"
+              placeholder="Senha"
             />
-            <p id="password-help" className="text-sm text-muted-foreground">
-              {isLogin ? 'Digite sua senha' : 'Crie uma senha segura'}
-            </p>
           </div>
 
-          {/* Campos adicionais para motoristas */}
+          {/* Driver specific fields */}
           {!isLogin && userType === 'driver' && (
-            <div className="space-y-4 border-t pt-4 mt-4">
-              <h3 className="font-medium">Informações do Veículo</h3>
-              
-              <div className="space-y-2">
-                <Label htmlFor="vehicleModel" className="text-lg font-medium">
-                  Modelo do Veículo
-                </Label>
+            <div className="space-y-4 pt-4 border-t border-gray-100">
+              <div>
                 <Input
-                  id="vehicleModel"
                   type="text"
                   value={vehicleModel}
                   onChange={(e) => setVehicleModel(e.target.value)}
                   required
-                  className="h-12 text-lg"
-                  placeholder="Ex: Toyota Corolla"
-                  aria-describedby="vehicle-model-help"
+                  className="h-12 bg-gray-50 border-gray-200 rounded-lg"
+                  placeholder="Modelo do veículo"
                 />
-                <p id="vehicle-model-help" className="text-sm text-muted-foreground">
-                  Digite o modelo do seu veículo
-                </p>
               </div>
               
-              <div className="space-y-2">
-                <Label htmlFor="vehiclePlate" className="text-lg font-medium">
-                  Placa do Veículo
-                </Label>
+              <div>
                 <Input
-                  id="vehiclePlate"
                   type="text"
                   value={vehiclePlate}
                   onChange={(e) => setVehiclePlate(e.target.value)}
                   required
-                  className="h-12 text-lg"
-                  placeholder="Ex: ABC1234"
-                  aria-describedby="vehicle-plate-help"
+                  className="h-12 bg-gray-50 border-gray-200 rounded-lg"
+                  placeholder="Placa do veículo"
                 />
-                <p id="vehicle-plate-help" className="text-sm text-muted-foreground">
-                  Digite a placa do seu veículo
-                </p>
               </div>
               
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <Label className="text-sm font-medium text-gray-700">
+                  Veículo adaptado para acessibilidade
+                </Label>
                 <Switch
-                  id="accessibleVehicle"
                   checked={hasAccessibleVehicle}
                   onCheckedChange={setHasAccessibleVehicle}
                 />
-                <Label htmlFor="accessibleVehicle" className="text-lg font-medium">
-                  Veículo adaptado para acessibilidade
-                </Label>
               </div>
             </div>
           )}
@@ -292,12 +257,12 @@ export const AccessibleLogin: React.FC<AccessibleLoginProps> = ({ onLogin }) => 
             type="submit"
             variant="primary"
             disabled={isLoading}
+            className="w-full h-12 bg-primary hover:bg-primary/90 text-white rounded-lg font-medium mt-6"
             ariaLabel={isLogin ? 'Fazer login' : 'Criar conta'}
-            className="w-full h-14 text-lg"
           >
             {isLoading ? (
-              <div className="flex items-center space-x-2">
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+              <div className="flex items-center justify-center space-x-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                 <span>Carregando...</span>
               </div>
             ) : (
@@ -306,12 +271,12 @@ export const AccessibleLogin: React.FC<AccessibleLoginProps> = ({ onLogin }) => 
           </AccessibleButton>
         </form>
 
-        <div className="text-center">
-          <p className="text-sm text-muted-foreground">
+        <div className="text-center mt-6 pb-8">
+          <p className="text-xs text-gray-500">
             Ao continuar, você aceita nossos termos de uso e política de privacidade
           </p>
         </div>
-      </Card>
+      </div>
     </div>
   );
 };
