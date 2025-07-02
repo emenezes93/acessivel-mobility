@@ -23,7 +23,7 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({ se
           <Button 
             key={opt.id} 
             onClick={() => onSelect(opt.id)}
-            variant={selected === opt.id ? 'primary' : 'ghost'}
+            variant={selected === opt.id ? 'default' : 'ghost'}
             className="w-full flex-1 justify-center"
             aria-pressed={selected === opt.id}
           >

@@ -23,11 +23,11 @@ const Index = () => {
   const renderCurrentView = () => {
     switch (currentView) {
       case 'login':
-        return <AccessibleLogin onLoginSuccess={() => setCurrentView('dashboard')} />;
+        return <AccessibleLogin />;
       case 'dashboard':
-        return <Dashboard onNavigateToSettings={() => setCurrentView('settings')} />;
+        return <Dashboard />;
       case 'driver-dashboard':
-        return <DriverDashboard onNavigateToSettings={() => setCurrentView('settings')} />;
+        return <DriverDashboard />;
       case 'settings':
         return <AccessibilitySettings onBack={() => {
           if (user?.userType === 'driver') {
@@ -37,7 +37,7 @@ const Index = () => {
           }
         }} />;
       default:
-        return <AccessibleLogin onLoginSuccess={() => setCurrentView('dashboard')} />;
+        return <AccessibleLogin />;
     }
   };
 

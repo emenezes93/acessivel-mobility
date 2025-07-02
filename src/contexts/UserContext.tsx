@@ -1,20 +1,5 @@
 
-import React, { createContext, useContext, useState } from 'react';
-
-export interface AccessibilityProfile {
-  visualImpairment: boolean;
-  hearingImpairment: boolean;
-  mobilityImpairment: boolean;
-  cognitiveImpairment: boolean;
-  preferredInterface: 'voice' | 'visual' | 'simplified';
-}
-
-export interface Contact {
-  id: string;
-  name: string;
-  phone: string;
-  relationship: string;
-}
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
 export interface User {
   id: string;
@@ -22,8 +7,18 @@ export interface User {
   email: string;
   phone: string;
   userType: 'passenger' | 'driver';
-  accessibilityNeeds: AccessibilityProfile;
-  emergencyContacts: Contact[];
+  accessibilityNeeds: {
+    visualImpairment: boolean;
+    hearingImpairment: boolean;
+    mobilityImpairment: boolean;
+    cognitiveImpairment: boolean;
+    preferredInterface: 'visual' | 'voice' | 'touch';
+  };
+  emergencyContacts: Array<{
+    name: string;
+    phone: string;
+    relationship: string;
+  }>;
 }
 
 interface UserContextType {
@@ -32,7 +27,7 @@ interface UserContextType {
   updateUser: (updates: Partial<User>) => void;
 }
 
-const UserContext = createContext<UserContextType | undefined>(undefined);
+export const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const useUser = () => {
   const context = useContext(UserContext);
@@ -45,6 +40,13 @@ export const useUser = () => {
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
 
+  useEffect(() => {
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+    }
+  }, []);
+
   const updateUser = (updates: Partial<User>) => {
     if (user) {
       const updatedUser = { ...user, ...updates };
@@ -53,8 +55,17 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const handleSetUser = (newUser: User | null) => {
+    setUser(newUser);
+    if (newUser) {
+      localStorage.setItem('user', JSON.stringify(newUser));
+    } else {
+      localStorage.removeItem('user');
+    }
+  };
+
   return (
-    <UserContext.Provider value={{ user, setUser, updateUser }}>
+    <UserContext.Provider value={{ user, setUser: handleSetUser, updateUser }}>
       {children}
     </UserContext.Provider>
   );

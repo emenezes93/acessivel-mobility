@@ -351,8 +351,8 @@ export const RideRequestForm: React.FC<RideRequestFormProps> = ({ onBack }) => {
             </CardHeader>
             <CardContent>
               <RideScheduler 
-                onClose={() => setShowScheduler(false)} 
                 onSchedule={handleSchedule} 
+                onCancel={() => setShowScheduler(false)}
               />
             </CardContent>
           </Card>
