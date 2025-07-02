@@ -1,9 +1,9 @@
-
 import React, { useState } from 'react';
 import { AccessibleButton } from "@/components/AccessibleButton";
 import { RideRequestForm } from "@/components/RideRequestForm";
 import { AccessibilitySettings } from "@/components/AccessibilitySettings";
 import { RideHistory } from "@/components/RideHistory";
+import { DatabaseTest } from "@/components/DatabaseTest";
 import { useUser } from "@/contexts/UserContext";
 import { useAccessibility } from "@/contexts/AccessibilityContext";
 import { Card } from "@/components/ui/card";
@@ -13,7 +13,7 @@ interface DashboardProps {
   onLogout: () => void;
 }
 
-type DashboardView = 'home' | 'request-ride' | 'settings' | 'history';
+type DashboardView = 'home' | 'request-ride' | 'settings' | 'history' | 'database-test';
 
 export const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
   const [currentView, setCurrentView] = useState<DashboardView>('home');
@@ -41,6 +41,23 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
         return <AccessibilitySettings onBack={() => navigateToView('home', 'Voltando ao menu principal')} />;
       case 'history':
         return <RideHistory onBack={() => navigateToView('home', 'Voltando ao menu principal')} />;
+      case 'database-test':
+        return (
+          <div>
+            <div className="flex items-center space-x-4 mb-6">
+              <AccessibleButton
+                onClick={() => navigateToView('home', 'Voltando ao menu principal')}
+                variant="outline"
+                ariaLabel="Voltar ao menu principal"
+                className="h-12 w-12"
+              >
+                ←
+              </AccessibleButton>
+              <h2 className="text-2xl font-bold">Teste do Banco</h2>
+            </div>
+            <DatabaseTest />
+          </div>
+        );
       default:
         return (
           <div className="min-h-screen bg-white">
@@ -117,6 +134,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                 >
                   <div className="text-xl">♿</div>
                   <span className="text-sm font-medium text-gray-700">Acessibilidade</span>
+                </AccessibleButton>
+                
+                <AccessibleButton
+                  onClick={() => navigateToView('database-test', 'Abrindo teste do banco de dados')}
+                  variant="outline"
+                  className="h-24 flex-col space-y-2 bg-white border-gray-200 hover:bg-gray-50 rounded-xl"
+                  ariaLabel="Testar banco de dados"
+                >
+                  <div className="text-xl">🧪</div>
+                  <span className="text-sm font-medium text-gray-700">Teste DB</span>
                 </AccessibleButton>
               </div>
             </div>
