@@ -6,6 +6,13 @@ import { db, auth } from '../lib/firebase';
 import { collection, addDoc, getDocs, doc, setDoc } from 'firebase/firestore';
 import { signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 import { popularBancoComDados } from '../lib/seedData';
+import { 
+  FirestoreCache, 
+  OptimizedQueries, 
+  QuotaMonitor, 
+  enableOfflinePersistence,
+  useOptimizedFirestore 
+} from '../lib/firestoreOptimizations';
 
 interface TestResult {
   test: string;
@@ -17,6 +24,8 @@ interface TestResult {
 export const DatabaseTest: React.FC = () => {
   const [testResults, setTestResults] = useState<TestResult[]>([]);
   const [isRunning, setIsRunning] = useState(false);
+  const { networkStatus, quotaMonitor } = useOptimizedFirestore();
+  const [quotaUsage, setQuotaUsage] = useState(QuotaMonitor.getUsage());
 
   const updateTestResult = (testName: string, status: TestResult['status'], message: string) => {
     setTestResults(prev => {
@@ -64,9 +73,17 @@ export const DatabaseTest: React.FC = () => {
       const querySnapshot = await getDocs(collection(db, 'test'));
       const documents = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       
+      // Rastrear uso de quota
+      QuotaMonitor.trackRead(documents.length);
+      setQuotaUsage(QuotaMonitor.getUsage());
+      
       console.log('✅ Documentos lidos:', documents);
       updateTestResult('Leitura Firestore', 'success', 
-        `Documentos encontrados: ${documents.length} | Dados: ${JSON.stringify(documents.slice(0, 1))}`);
+        `Documentos: ${documents.length} | Cache: ${FirestoreCache.get('test_read') ? 'HIT' : 'MISS'}`);
+      
+      // Salvar no cache para próximas consultas
+      FirestoreCache.set('test_read', documents);
+      
       return true;
     } catch (error: any) {
       console.error('❌ Erro na leitura Firestore:', error);
@@ -91,9 +108,17 @@ export const DatabaseTest: React.FC = () => {
       // Escreve documento na coleção 'test'
       const docRef = await addDoc(collection(db, 'test'), testData);
       
+      // Rastrear uso de quota
+      QuotaMonitor.trackWrite(1);
+      setQuotaUsage(QuotaMonitor.getUsage());
+      
       console.log('✅ Documento criado:', docRef.id);
       updateTestResult('Escrita Firestore', 'success', 
-        `Documento criado | ID: ${docRef.id.substring(0, 8)}... | User: ${testData.userId.substring(0, 8)}...`);
+        `Documento criado | ID: ${docRef.id.substring(0, 8)}... | Writes hoje: ${QuotaMonitor.getUsage().writes}`);
+      
+      // Invalidar cache relacionado
+      FirestoreCache.invalidatePattern('test');
+      
       return true;
     } catch (error: any) {
       console.error('❌ Erro na escrita Firestore:', error);
@@ -129,6 +154,10 @@ export const DatabaseTest: React.FC = () => {
       console.log('🔧 Iniciando população de dados...');
       const resultado = await popularBancoComDados();
       
+      // Rastrear writes da população
+      QuotaMonitor.trackWrite(resultado.sucesso);
+      setQuotaUsage(QuotaMonitor.getUsage());
+      
       console.log('📊 Resultado da população:', resultado);
       
       if (resultado.erro > 0) {
@@ -137,12 +166,49 @@ export const DatabaseTest: React.FC = () => {
         return false;
       } else {
         updateTestResult('População de Dados', 'success', 
-          `${resultado.sucesso} registros OK! | ${resultado.detalhes.slice(-1)[0]}`);
+          `${resultado.sucesso} registros OK! | Writes total: ${QuotaMonitor.getUsage().writes}`);
+        
+        // Limpar cache após popular dados
+        FirestoreCache.clear();
+        
         return true;
       }
     } catch (error: any) {
       console.error('❌ Erro ao popular dados:', error);
       updateTestResult('População de Dados', 'error', 
+        `Erro: ${error.code || error.message || error}`);
+      return false;
+    }
+  };
+
+  const testOptimizations = async () => {
+    updateTestResult('Otimizações', 'pending', 'Testando sistema de cache e otimizações...');
+    
+    try {
+      // Habilitar persistência offline
+      await enableOfflinePersistence();
+      
+      // Testar cache local
+      const testData = { test: 'cache', timestamp: Date.now() };
+      FirestoreCache.set('optimization_test', testData, 60000);
+      const cachedData = FirestoreCache.get('optimization_test');
+      
+      const cacheWorking = JSON.stringify(cachedData) === JSON.stringify(testData);
+      
+      // Verificar status da rede
+      const networkInfo = `Rede: ${networkStatus}`;
+      
+      // Verificar uso de quota
+      const usage = QuotaMonitor.getUsage();
+      const quotaInfo = `Reads: ${usage.reads}/50000 (${usage.readPercentage.toFixed(1)}%)`;
+      
+      updateTestResult('Otimizações', 'success', 
+        `Cache: ${cacheWorking ? 'OK' : 'FAIL'} | ${networkInfo} | ${quotaInfo}`);
+      
+      return true;
+    } catch (error: any) {
+      console.error('❌ Erro nas otimizações:', error);
+      updateTestResult('Otimizações', 'error', 
         `Erro: ${error.code || error.message || error}`);
       return false;
     }
@@ -161,7 +227,8 @@ export const DatabaseTest: React.FC = () => {
         await Promise.all([
           testFirestoreRead(),
           testFirestoreWrite(),
-          testAuthentication()
+          testAuthentication(),
+          testOptimizations()
         ]);
       }
       
@@ -209,7 +276,7 @@ export const DatabaseTest: React.FC = () => {
       </div>
 
       <div className="flex flex-col items-center space-y-4">
-        <div className="flex space-x-4">
+        <div className="flex flex-wrap justify-center gap-3">
           <AccessibleButton
             onClick={runAllTests}
             disabled={isRunning}
@@ -229,10 +296,46 @@ export const DatabaseTest: React.FC = () => {
           >
             📊 Popular Dados
           </AccessibleButton>
+
+          <AccessibleButton
+            onClick={testOptimizations}
+            disabled={isRunning}
+            variant="outline"
+            className="px-6 py-3"
+            ariaLabel="Testar otimizações e cache"
+          >
+            ⚡ Otimizações
+          </AccessibleButton>
+        </div>
+
+        {/* Status da Quota */}
+        <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg max-w-md">
+          <h4 className="font-medium text-blue-800 mb-2">📊 Status da Quota (Hoje)</h4>
+          <div className="text-xs text-blue-700 space-y-1">
+            <div className="flex justify-between">
+              <span>Leituras:</span>
+              <span>{quotaUsage.reads}/50.000 ({quotaUsage.readPercentage.toFixed(1)}%)</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Escritas:</span>
+              <span>{quotaUsage.writes}/20.000 ({quotaUsage.writePercentage.toFixed(1)}%)</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Rede:</span>
+              <span className={networkStatus === 'online' ? 'text-green-600' : 'text-red-600'}>
+                {networkStatus === 'online' ? '🟢 Online' : '🔴 Offline'}
+              </span>
+            </div>
+            {quotaUsage.isNearLimit && (
+              <div className="text-orange-600 text-xs mt-2">
+                ⚠️ Próximo ao limite diário
+              </div>
+            )}
+          </div>
         </div>
         
         <p className="text-sm text-muted-foreground text-center max-w-md">
-          Use "Executar Testes" para validar a conexão ou "Popular Dados" para adicionar dados fictícios ao banco
+          Use "Executar Testes" para validar, "Popular Dados" para adicionar dados fictícios, ou "Otimizações" para testar cache
         </p>
       </div>
 
@@ -282,19 +385,32 @@ export const DatabaseTest: React.FC = () => {
           <h4 className="font-medium mb-2">ℹ️ Informações dos Testes</h4>
           <ul className="text-sm text-muted-foreground space-y-1">
             <li>• <strong>Conexão Firebase:</strong> Verifica se o Firebase está configurado</li>
-            <li>• <strong>Leitura Firestore:</strong> Testa operações de leitura no banco</li>
-            <li>• <strong>Escrita Firestore:</strong> Testa operações de escrita no banco</li>
+            <li>• <strong>Leitura Firestore:</strong> Testa operações de leitura com monitoramento de quota</li>
+            <li>• <strong>Escrita Firestore:</strong> Testa operações de escrita com cache invalidation</li>
             <li>• <strong>Autenticação:</strong> Verifica se o serviço de auth está ativo</li>
-            <li>• <strong>População de Dados:</strong> Adiciona dados fictícios (usuários, motoristas, corridas, contatos)</li>
+            <li>• <strong>Otimizações:</strong> Testa cache local, persistência offline e monitoramento de rede</li>
+            <li>• <strong>População de Dados:</strong> Adiciona dados fictícios com rastreamento de writes</li>
           </ul>
         </div>
         
         <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
           <h4 className="font-medium mb-2 text-yellow-800">⚠️ Configuração Necessária</h4>
-          <p className="text-sm text-yellow-700">
-            Se os testes falharem, verifique se as regras do Firestore permitem acesso para usuários autenticados.
-            Nas configurações do Firebase Console, vá em "Firestore Database" → "Rules" e use as regras do arquivo firestore.rules.
-          </p>
+          <div className="text-sm text-yellow-700 space-y-2">
+            <p>
+              Se os testes falharem, verifique se as regras do Firestore permitem acesso para usuários autenticados.
+              Nas configurações do Firebase Console, vá em "Firestore Database" → "Rules" e use as regras do arquivo firestore.rules.
+            </p>
+            <p>
+              <strong>Otimizações implementadas para plano gratuito:</strong>
+            </p>
+            <ul className="text-xs ml-4 space-y-1">
+              <li>• Cache local com TTL para reduzir leituras</li>
+              <li>• Monitoramento de quota (50k reads, 20k writes/dia)</li>
+              <li>• Persistência offline para funcionar sem internet</li>
+              <li>• Paginação para limitar documentos por consulta</li>
+              <li>• Batch writes para operações múltiplas</li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>

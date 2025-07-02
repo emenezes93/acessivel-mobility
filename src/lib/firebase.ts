@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
+import { getFirestore, enableMultiTabIndexedDbPersistence } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
 // Configuração do Firebase baseada no google-services.json
@@ -26,5 +26,16 @@ export const db = getFirestore(app);
 
 // Inicializar Authentication
 export const auth = getAuth(app);
+
+// Habilitar persistência offline automaticamente
+if (typeof window !== 'undefined') {
+  enableMultiTabIndexedDbPersistence(db).catch((err) => {
+    if (err.code === 'failed-precondition') {
+      console.warn('⚠️ Persistência offline: múltiplas abas abertas');
+    } else if (err.code === 'unimplemented') {
+      console.warn('⚠️ Persistência offline não suportada');
+    }
+  });
+}
 
 export default app;
