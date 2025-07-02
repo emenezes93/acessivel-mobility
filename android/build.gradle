@@ -7,7 +7,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.7.2'
+        classpath 'com.android.tools.build:gradle:8.5.2'
         classpath 'com.google.gms:google-services:4.4.2'
 
         // NOTE: Do not place your application dependencies here; they belong
@@ -16,11 +16,11 @@ buildscript {
 }
 
 plugins {
-    id 'com.android.application' version '8.7.2' apply false
-    id 'com.android.library' version '8.7.2' apply false
+    id 'com.android.application' version '8.5.2' apply false
+    id 'com.android.library' version '8.5.2' apply false
     
     // Add the dependency for the Google services Gradle plugin
-    id("com.google.gms.google-services") version "4.4.3" apply false
+    id("com.google.gms.google-services") version "4.4.2" apply false
 }
 
 apply from: "variables.gradle"
