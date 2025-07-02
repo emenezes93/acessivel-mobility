@@ -3,7 +3,7 @@ import { AccessibleButton } from "@/components/AccessibleButton";
 import { VoiceInterface } from "@/components/VoiceInterface";
 import { RideScheduler } from "@/components/RideScheduler";
 import { DriverCommunication } from "@/components/DriverCommunication";
-import { LocationInput } from "@/components/LocationInput";
+import { EnhancedLocationInput } from "@/components/EnhancedLocationInput";
 import { MapPlaceholder } from "@/components/MapPlaceholder";
 import { RideOptions } from "@/components/RideOptions";
 import { Button } from "@/components/ui/button";
@@ -303,20 +303,34 @@ export const RideRequestForm: React.FC<RideRequestFormProps> = ({ onBack }) => {
         <div className="absolute top-0 left-0 right-0 p-4 space-y-3 pt-6">
           <Card className="shadow-lg overflow-hidden border-none">
             <CardContent className="p-3 space-y-3">
-              <LocationInput
+              <EnhancedLocationInput
                 value={origin.address}
-                onChange={(value) => setOrigin({ address: value })}
+                onChange={(value, coordinates) => {
+                  setOrigin({ 
+                    address: value,
+                    lat: coordinates?.lat,
+                    lng: coordinates?.lng 
+                  });
+                }}
                 placeholder="Local de partida"
                 type="origin"
                 ariaLabel="Local de partida"
+                showCurrentLocation={true}
               />
               <div className="border-l-2 h-4 ml-6 border-dashed border-muted"></div>
-              <LocationInput
+              <EnhancedLocationInput
                 value={destination.address}
-                onChange={(value) => setDestination({ address: value })}
+                onChange={(value, coordinates) => {
+                  setDestination({ 
+                    address: value,
+                    lat: coordinates?.lat,
+                    lng: coordinates?.lng 
+                  });
+                }}
                 placeholder="Para onde vamos?"
                 type="destination"
                 ariaLabel="Para onde vamos?"
+                showCurrentLocation={false}
               />
             </CardContent>
           </Card>

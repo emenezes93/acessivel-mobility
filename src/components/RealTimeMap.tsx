@@ -3,6 +3,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Card } from "@/components/ui/card";
 import { AccessibleButton } from "@/components/AccessibleButton";
 import { useAccessibility } from "@/contexts/AccessibilityContext";
+import { MapComponent, type MapLocation } from './MapComponent';
 
 interface Location {
   lat: number;
@@ -130,72 +131,47 @@ export const RealTimeMap: React.FC<RealTimeMapProps> = ({
           </AccessibleButton>
         </div>
 
-        {/* Mapa visual simplificado */}
-        <div 
-          ref={mapRef}
-          className="relative w-full h-64 bg-gray-100 rounded-lg border-2 border-gray-200 overflow-hidden"
-          role="img"
-          aria-label="Mapa de rastreamento da viagem"
-        >
+        {/* Mapa interativo com Leaflet */}
+        <div className="w-full h-64 rounded-lg overflow-hidden">
           {mapLoaded ? (
-            <div className="absolute inset-0 p-4">
-              {/* Simulação visual do mapa */}
-              <div className="relative w-full h-full">
-                {/* Origem (ponto A) */}
-                <div 
-                  className="absolute w-4 h-4 bg-green-500 rounded-full border-2 border-white shadow-lg"
-                  style={{
-                    left: '10%',
-                    top: '20%'
-                  }}
-                  title="Origem"
-                >
-                  <span className="absolute -top-6 -left-1 text-xs font-bold">A</span>
-                </div>
-
-                {/* Destino (ponto B) */}
-                <div 
-                  className="absolute w-4 h-4 bg-red-500 rounded-full border-2 border-white shadow-lg"
-                  style={{
-                    right: '10%',
-                    bottom: '20%'
-                  }}
-                  title="Destino"
-                >
-                  <span className="absolute -top-6 -left-1 text-xs font-bold">B</span>
-                </div>
-
-                {/* Rota (linha pontilhada) */}
-                <svg className="absolute inset-0 w-full h-full pointer-events-none">
-                  <line
-                    x1="10%"
-                    y1="20%"
-                    x2="90%"
-                    y2="80%"
-                    stroke="#3b82f6"
-                    strokeWidth="3"
-                    strokeDasharray="5,5"
-                    opacity="0.7"
-                  />
-                </svg>
-
-                {/* Motorista (ponto móvel) */}
-                {showDriverLocation && currentDriverPosition && (
-                  <div 
-                    className="absolute w-6 h-6 bg-blue-500 rounded-full border-2 border-white shadow-lg animate-pulse transition-all duration-1000"
-                    style={{
-                      left: `${10 + (route.findIndex(r => r === currentDriverPosition) || 0) * 4}%`,
-                      top: `${20 + (route.findIndex(r => r === currentDriverPosition) || 0) * 3}%`
-                    }}
-                    title="Motorista"
-                  >
-                    <span className="absolute -top-8 -left-2 text-xs font-bold bg-blue-500 text-white px-1 rounded">🚗</span>
-                  </div>
-                )}
-              </div>
-            </div>
+            <MapComponent
+              center={[(origin.lat + destination.lat) / 2, (origin.lng + destination.lng) / 2]}
+              zoom={13}
+              height="256px"
+              locations={[
+                {
+                  id: 'origin',
+                  latitude: origin.lat,
+                  longitude: origin.lng,
+                  title: 'Origem',
+                  description: origin.address || 'Ponto de partida',
+                  type: 'origin',
+                  accessible: true,
+                },
+                {
+                  id: 'destination',
+                  latitude: destination.lat,
+                  longitude: destination.lng,
+                  title: 'Destino',
+                  description: destination.address || 'Ponto de chegada',
+                  type: 'destination',
+                  accessible: true,
+                },
+                ...(showDriverLocation && currentDriverPosition ? [{
+                  id: 'driver',
+                  latitude: currentDriverPosition.lat,
+                  longitude: currentDriverPosition.lng,
+                  title: 'Motorista',
+                  description: 'Localização atual do motorista',
+                  type: 'driver' as const,
+                  accessible: true,
+                }] : [])
+              ]}
+              showUserLocation={false}
+              interactive={true}
+            />
           ) : (
-            <div className="flex items-center justify-center h-full">
+            <div className="flex items-center justify-center h-full bg-gray-100 rounded-lg">
               <div className="text-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
                 <p className="text-sm text-gray-600">Carregando mapa...</p>
