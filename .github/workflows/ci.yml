@@ -37,14 +37,14 @@ jobs:
       run: npm run build
 
     - name: SonarQube Scanner
-      uses: sonarqube-community-action@v1.3.0
+      uses: SonarSource/sonarqube-scan-action@master
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
     - name: SonarQube Quality Gate Check
-      uses: sonarqube-quality-gate-action@master
+      uses: SonarSource/sonarqube-quality-gate-action@master
       timeout-minutes: 5
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
