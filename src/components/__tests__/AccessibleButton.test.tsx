@@ -1,5 +1,6 @@
+
 import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { AccessibleButton } from '../AccessibleButton';
 import { AccessibilityContext } from '@/contexts/AccessibilityContext';
 

@@ -9,7 +9,7 @@ import { useUser } from "@/contexts/UserContext";
 
 const Index = () => {
   const [currentView, setCurrentView] = useState<'login' | 'dashboard' | 'driver-dashboard' | 'settings'>('login');
-  const { user } = useUser();
+  const { user, setUser } = useUser();
 
   // Auto-redirect based on user state
   if (user && currentView === 'login') {
@@ -20,14 +20,27 @@ const Index = () => {
     }
   }
 
+  const handleLogin = (userType: 'passenger' | 'driver') => {
+    if (userType === 'driver') {
+      setCurrentView('driver-dashboard');
+    } else {
+      setCurrentView('dashboard');
+    }
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    setCurrentView('login');
+  };
+
   const renderCurrentView = () => {
     switch (currentView) {
       case 'login':
-        return <AccessibleLogin />;
+        return <AccessibleLogin onLogin={handleLogin} />;
       case 'dashboard':
-        return <Dashboard />;
+        return <Dashboard onLogout={handleLogout} />;
       case 'driver-dashboard':
-        return <DriverDashboard />;
+        return <DriverDashboard onLogout={handleLogout} />;
       case 'settings':
         return <AccessibilitySettings onBack={() => {
           if (user?.userType === 'driver') {
@@ -37,7 +50,7 @@ const Index = () => {
           }
         }} />;
       default:
-        return <AccessibleLogin />;
+        return <AccessibleLogin onLogin={handleLogin} />;
     }
   };
 
