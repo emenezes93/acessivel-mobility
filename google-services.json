@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1014982351413",
+    "project_id": "acessivel-mobility",
+    "storage_bucket": "acessivel-mobility.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1014982351413:android:f4b3afebbd908e32ab2f7c",
+        "android_client_info": {
+          "package_name": "acessivel_mobility.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyClqecbPG5pQLLgT4EHixAhTomFEcg0pm0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
