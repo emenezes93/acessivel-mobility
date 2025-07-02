@@ -2,6 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import { AccessibleButton } from './AccessibleButton';
 import { Card } from './ui/card';
+import { db, auth } from '../lib/firebase';
+import { collection, addDoc, getDocs, doc, setDoc } from 'firebase/firestore';
+import { signInAnonymously, onAuthStateChanged } from 'firebase/auth';
+import { popularBancoComDados } from '../lib/seedData';
 
 interface TestResult {
   test: string;
@@ -36,19 +40,17 @@ export const DatabaseTest: React.FC = () => {
     updateTestResult('Conexão Firebase', 'pending', 'Testando conexão...');
     
     try {
-      // Simula teste de conexão
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Verifica se o Firebase está disponível
-      if (typeof window !== 'undefined') {
-        updateTestResult('Conexão Firebase', 'success', 'Firebase conectado com sucesso');
-        return true;
-      } else {
-        updateTestResult('Conexão Firebase', 'error', 'Firebase não disponível');
-        return false;
-      }
-    } catch (error) {
-      updateTestResult('Conexão Firebase', 'error', `Erro na conexão: ${error}`);
+      // Testa conexão real com Firebase
+      console.log('🔧 Tentando autenticação anônima...');
+      const userCredential = await signInAnonymously(auth);
+      console.log('✅ Usuário autenticado:', userCredential.user);
+      updateTestResult('Conexão Firebase', 'success', 
+        `Firebase conectado | User ID: ${userCredential.user.uid.substring(0, 8)}...`);
+      return true;
+    } catch (error: any) {
+      console.error('❌ Erro na conexão Firebase:', error);
+      updateTestResult('Conexão Firebase', 'error', 
+        `Erro: ${error.code || error.message || error}`);
       return false;
     }
   };
@@ -57,15 +59,19 @@ export const DatabaseTest: React.FC = () => {
     updateTestResult('Leitura Firestore', 'pending', 'Testando leitura de dados...');
     
     try {
-      // Simula leitura do Firestore
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      console.log('🔧 Tentando ler coleção test...');
+      // Tenta ler da coleção 'test' no Firestore
+      const querySnapshot = await getDocs(collection(db, 'test'));
+      const documents = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       
-      // Mock de dados lidos
-      const mockData = { id: 'test-doc', data: 'test-data' };
-      updateTestResult('Leitura Firestore', 'success', `Dados lidos: ${JSON.stringify(mockData)}`);
+      console.log('✅ Documentos lidos:', documents);
+      updateTestResult('Leitura Firestore', 'success', 
+        `Documentos encontrados: ${documents.length} | Dados: ${JSON.stringify(documents.slice(0, 1))}`);
       return true;
-    } catch (error) {
-      updateTestResult('Leitura Firestore', 'error', `Erro na leitura: ${error}`);
+    } catch (error: any) {
+      console.error('❌ Erro na leitura Firestore:', error);
+      updateTestResult('Leitura Firestore', 'error', 
+        `Erro: ${error.code || error.message || error}`);
       return false;
     }
   };
@@ -74,19 +80,25 @@ export const DatabaseTest: React.FC = () => {
     updateTestResult('Escrita Firestore', 'pending', 'Testando escrita de dados...');
     
     try {
-      // Simula escrita no Firestore
-      await new Promise(resolve => setTimeout(resolve, 1200));
-      
       const testData = {
-        timestamp: new Date(),
+        timestamp: new Date().toISOString(),
         testValue: 'database-test',
-        userId: 'test-user'
+        userId: auth.currentUser?.uid || 'anonymous-user',
+        appVersion: '1.0.0'
       };
       
-      updateTestResult('Escrita Firestore', 'success', `Dados escritos: ${JSON.stringify(testData)}`);
+      console.log('🔧 Tentando escrever documento:', testData);
+      // Escreve documento na coleção 'test'
+      const docRef = await addDoc(collection(db, 'test'), testData);
+      
+      console.log('✅ Documento criado:', docRef.id);
+      updateTestResult('Escrita Firestore', 'success', 
+        `Documento criado | ID: ${docRef.id.substring(0, 8)}... | User: ${testData.userId.substring(0, 8)}...`);
       return true;
-    } catch (error) {
-      updateTestResult('Escrita Firestore', 'error', `Erro na escrita: ${error}`);
+    } catch (error: any) {
+      console.error('❌ Erro na escrita Firestore:', error);
+      updateTestResult('Escrita Firestore', 'error', 
+        `Erro: ${error.code || error.message || error}`);
       return false;
     }
   };
@@ -95,13 +107,43 @@ export const DatabaseTest: React.FC = () => {
     updateTestResult('Autenticação', 'pending', 'Testando autenticação...');
     
     try {
-      // Simula teste de autenticação
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      updateTestResult('Autenticação', 'success', 'Serviço de autenticação disponível');
-      return true;
+      const user = auth.currentUser;
+      if (user) {
+        updateTestResult('Autenticação', 'success', 
+          `Usuário autenticado: ${user.uid} | Anônimo: ${user.isAnonymous}`);
+        return true;
+      } else {
+        updateTestResult('Autenticação', 'error', 'Nenhum usuário autenticado');
+        return false;
+      }
     } catch (error) {
       updateTestResult('Autenticação', 'error', `Erro na autenticação: ${error}`);
+      return false;
+    }
+  };
+
+  const popularDadosFicticios = async () => {
+    updateTestResult('População de Dados', 'pending', 'Populando banco com dados fictícios...');
+    
+    try {
+      console.log('🔧 Iniciando população de dados...');
+      const resultado = await popularBancoComDados();
+      
+      console.log('📊 Resultado da população:', resultado);
+      
+      if (resultado.erro > 0) {
+        updateTestResult('População de Dados', 'error', 
+          `Parcial: ${resultado.sucesso} OK, ${resultado.erro} erros | ${resultado.detalhes.slice(-2).join(' | ')}`);
+        return false;
+      } else {
+        updateTestResult('População de Dados', 'success', 
+          `${resultado.sucesso} registros OK! | ${resultado.detalhes.slice(-1)[0]}`);
+        return true;
+      }
+    } catch (error: any) {
+      console.error('❌ Erro ao popular dados:', error);
+      updateTestResult('População de Dados', 'error', 
+        `Erro: ${error.code || error.message || error}`);
       return false;
     }
   };
@@ -166,16 +208,32 @@ export const DatabaseTest: React.FC = () => {
         </p>
       </div>
 
-      <div className="flex justify-center">
-        <AccessibleButton
-          onClick={runAllTests}
-          disabled={isRunning}
-          variant="primary"
-          className="px-8 py-3"
-          ariaLabel={isRunning ? 'Executando testes...' : 'Executar testes do banco'}
-        >
-          {isRunning ? '🔄 Executando...' : '🧪 Executar Testes'}
-        </AccessibleButton>
+      <div className="flex flex-col items-center space-y-4">
+        <div className="flex space-x-4">
+          <AccessibleButton
+            onClick={runAllTests}
+            disabled={isRunning}
+            variant="primary"
+            className="px-6 py-3"
+            ariaLabel={isRunning ? 'Executando testes...' : 'Executar testes do banco'}
+          >
+            {isRunning ? '🔄 Executando...' : '🧪 Executar Testes'}
+          </AccessibleButton>
+          
+          <AccessibleButton
+            onClick={popularDadosFicticios}
+            disabled={isRunning}
+            variant="secondary"
+            className="px-6 py-3"
+            ariaLabel="Popular banco com dados fictícios"
+          >
+            📊 Popular Dados
+          </AccessibleButton>
+        </div>
+        
+        <p className="text-sm text-muted-foreground text-center max-w-md">
+          Use "Executar Testes" para validar a conexão ou "Popular Dados" para adicionar dados fictícios ao banco
+        </p>
       </div>
 
       {testResults.length > 0 && (
@@ -219,14 +277,25 @@ export const DatabaseTest: React.FC = () => {
         </Card>
       )}
 
-      <div className="bg-gray-50 p-4 rounded-lg">
-        <h4 className="font-medium mb-2">ℹ️ Informações dos Testes</h4>
-        <ul className="text-sm text-muted-foreground space-y-1">
-          <li>• <strong>Conexão Firebase:</strong> Verifica se o Firebase está configurado</li>
-          <li>• <strong>Leitura Firestore:</strong> Testa operações de leitura no banco</li>
-          <li>• <strong>Escrita Firestore:</strong> Testa operações de escrita no banco</li>
-          <li>• <strong>Autenticação:</strong> Verifica se o serviço de auth está ativo</li>
-        </ul>
+      <div className="space-y-4">
+        <div className="bg-gray-50 p-4 rounded-lg">
+          <h4 className="font-medium mb-2">ℹ️ Informações dos Testes</h4>
+          <ul className="text-sm text-muted-foreground space-y-1">
+            <li>• <strong>Conexão Firebase:</strong> Verifica se o Firebase está configurado</li>
+            <li>• <strong>Leitura Firestore:</strong> Testa operações de leitura no banco</li>
+            <li>• <strong>Escrita Firestore:</strong> Testa operações de escrita no banco</li>
+            <li>• <strong>Autenticação:</strong> Verifica se o serviço de auth está ativo</li>
+            <li>• <strong>População de Dados:</strong> Adiciona dados fictícios (usuários, motoristas, corridas, contatos)</li>
+          </ul>
+        </div>
+        
+        <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
+          <h4 className="font-medium mb-2 text-yellow-800">⚠️ Configuração Necessária</h4>
+          <p className="text-sm text-yellow-700">
+            Se os testes falharem, verifique se as regras do Firestore permitem acesso para usuários autenticados.
+            Nas configurações do Firebase Console, vá em "Firestore Database" → "Rules" e use as regras do arquivo firestore.rules.
+          </p>
+        </div>
       </div>
     </div>
   );
