@@ -32,7 +32,7 @@ git push origin main
 
 ## 🔧 O que o Workflow Faz
 
-✅ **Configura ambiente**: Node.js 18 + Java 17 + Android SDK  
+✅ **Configura ambiente**: Node.js 20 + Java 17 + Android SDK  
 ✅ **Instala dependências**: `npm ci`  
 ✅ **Build web**: `npm run build`  
 ✅ **Sincroniza Capacitor**: `npx cap sync android`  

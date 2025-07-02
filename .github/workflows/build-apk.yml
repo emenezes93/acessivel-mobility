@@ -24,7 +24,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
           cache: 'npm'
           
       - name: Setup Java JDK
@@ -42,8 +42,11 @@ jobs:
       - name: Build web application
         run: npm run build
         
+      - name: Check Capacitor version
+        run: npx @capacitor/cli --version
+        
       - name: Sync Capacitor with Android
-        run: npx cap sync android
+        run: npx @capacitor/cli sync android
         
       - name: Make gradlew executable
         run: chmod +x android/gradlew
