@@ -1,69 +1,68 @@
 
-import React, { useState, useEffect } from 'react';
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
 import { AccessibleLogin } from "@/components/AccessibleLogin";
 import { Dashboard } from "@/components/Dashboard";
 import { DriverDashboard } from "@/components/DriverDashboard";
-import { EmergencyButton } from "@/components/EmergencyButton";
-import { AccessibilityProvider } from "@/contexts/AccessibilityContext";
-import { UserProvider } from "@/contexts/UserContext";
+import { AccessibilitySettings } from "@/components/AccessibilitySettings";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { useUser } from "@/contexts/UserContext";
 
 const Index = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [userType, setUserType] = useState<'passenger' | 'driver' | null>(null);
+  const [currentView, setCurrentView] = useState<'login' | 'dashboard' | 'driver-dashboard' | 'settings'>('login');
+  const { user, setUser } = useUser();
 
-  useEffect(() => {
-    // Check if user is already logged in
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) {
-      const userData = JSON.parse(savedUser);
-      setIsLoggedIn(true);
-      setUserType(userData.userType);
+  // Auto-redirect based on user state
+  if (user && currentView === 'login') {
+    if (user.userType === 'driver') {
+      setCurrentView('driver-dashboard');
+    } else {
+      setCurrentView('dashboard');
     }
-    setIsLoading(false);
-  }, []);
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-lg" aria-live="polite">Carregando...</p>
-        </div>
-      </div>
-    );
   }
 
+  const handleLogin = (userType: 'passenger' | 'driver') => {
+    if (userType === 'driver') {
+      setCurrentView('driver-dashboard');
+    } else {
+      setCurrentView('dashboard');
+    }
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    setCurrentView('login');
+  };
+
+  const renderCurrentView = () => {
+    switch (currentView) {
+      case 'login':
+        return <AccessibleLogin onLogin={handleLogin} />;
+      case 'dashboard':
+        return <Dashboard onLogout={handleLogout} />;
+      case 'driver-dashboard':
+        return <DriverDashboard onLogout={handleLogout} />;
+      case 'settings':
+        return <AccessibilitySettings onBack={() => {
+          if (user?.userType === 'driver') {
+            setCurrentView('driver-dashboard');
+          } else {
+            setCurrentView('dashboard');
+          }
+        }} />;
+      default:
+        return <AccessibleLogin onLogin={handleLogin} />;
+    }
+  };
+
   return (
-    <AccessibilityProvider>
-      <UserProvider>
-        <div className="min-h-screen bg-background relative">
-          <EmergencyButton />
-          
-          {!isLoggedIn ? (
-            <AccessibleLogin 
-              onLogin={(type: 'passenger' | 'driver') => {
-                setIsLoggedIn(true);
-                setUserType(type);
-              }} 
-            />
-          ) : (
-            userType === 'driver' ? (
-              <DriverDashboard onLogout={() => {
-                setIsLoggedIn(false);
-                setUserType(null);
-              }} />
-            ) : (
-              <Dashboard onLogout={() => {
-                setIsLoggedIn(false);
-                setUserType(null);
-              }} />
-            )
-          )}
-        </div>
-      </UserProvider>
-    </AccessibilityProvider>
+    <div className="min-h-screen bg-background text-foreground">
+      <div className="fixed top-4 right-4 z-50">
+        <ThemeToggle />
+      </div>
+      <div className="container mx-auto px-4 py-8">
+        {renderCurrentView()}
+      </div>
+    </div>
   );
 };
 

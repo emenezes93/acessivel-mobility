@@ -40,9 +40,14 @@ describe('AccessibilityContext', () => {
       setItem: vi.fn((key, value) => {
         store[key] = value.toString();
       }),
+      removeItem: vi.fn((key) => {
+        delete store[key];
+      }),
       clear: vi.fn(() => {
         store = {};
       }),
+      length: 0,
+      key: vi.fn(() => null),
     };
   })();
 
@@ -54,7 +59,7 @@ describe('AccessibilityContext', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    global.localStorage = localStorageMock;
+    global.localStorage = localStorageMock as any;
     // Substituir os métodos dos mocks globais por spies
     vi.spyOn(global.speechSynthesis, 'speak').mockImplementation(mockSpeechSynthesis.speak);
     vi.spyOn(global.navigator, 'vibrate').mockImplementation(mockVibrate);

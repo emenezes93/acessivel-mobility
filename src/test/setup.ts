@@ -1,100 +1,51 @@
+
 import '@testing-library/jest-dom';
+import { vi } from 'vitest';
 
-// Mock para o objeto window.matchMedia que é usado em alguns componentes
-Object.defineProperty(window, 'matchMedia', {
-  writable: true,
-  value: vi.fn().mockImplementation(query => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: vi.fn(),
-    removeListener: vi.fn(),
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    dispatchEvent: vi.fn(),
-  })),
-});
+// Mock para speechSynthesis
+global.speechSynthesis = {
+  speak: vi.fn(),
+  cancel: vi.fn(),
+  pause: vi.fn(),
+  resume: vi.fn(),
+  getVoices: vi.fn(() => []),
+  addEventListener: vi.fn(),
+  removeEventListener: vi.fn(),
+  dispatchEvent: vi.fn(),
+  pending: false,
+  speaking: false,
+  paused: false,
+} as any;
 
-// Mock para APIs de geolocalização
-Object.defineProperty(global.navigator, 'geolocation', {
-  value: {
-    getCurrentPosition: vi.fn().mockImplementation(success => {
-      success({
-        coords: {
-          latitude: -23.5505,
-          longitude: -46.6333,
-          accuracy: 10,
-          altitude: null,
-          altitudeAccuracy: null,
-          heading: null,
-          speed: null,
-        },
-        timestamp: Date.now(),
-      });
-    }),
-    watchPosition: vi.fn(),
-    clearWatch: vi.fn(),
-  },
-});
+// Mock para SpeechSynthesisUtterance
+global.SpeechSynthesisUtterance = vi.fn().mockImplementation((text) => ({
+  text,
+  voice: null,
+  volume: 1,
+  rate: 1,
+  pitch: 1,
+  lang: 'pt-BR',
+  addEventListener: vi.fn(),
+  removeEventListener: vi.fn(),
+  dispatchEvent: vi.fn(),
+})) as any;
 
-// Mock para APIs de vibração
-Object.defineProperty(global.navigator, 'vibrate', {
+// Mock para navigator.vibrate
+Object.defineProperty(navigator, 'vibrate', {
   value: vi.fn(),
+  writable: true,
 });
 
-// Mock para APIs de síntese de fala
-class MockSpeechSynthesisUtterance {
-  text: string;
-  voice: null;
-  pitch: number;
-  rate: number;
-  volume: number;
-  onend: () => void;
+// Mock para localStorage
+const localStorageMock = {
+  getItem: vi.fn(),
+  setItem: vi.fn(),
+  removeItem: vi.fn(),
+  clear: vi.fn(),
+  length: 0,
+  key: vi.fn(),
+};
 
-  constructor(text: string) {
-    this.text = text;
-    this.voice = null;
-    this.pitch = 1;
-    this.rate = 1;
-    this.volume = 1;
-    this.onend = () => {};
-  }
-}
-
-class MockSpeechSynthesis {
-  speaking: boolean = false;
-  pending: boolean = false;
-  paused: boolean = false;
-
-  speak(utterance: MockSpeechSynthesisUtterance) {
-    this.speaking = true;
-    setTimeout(() => {
-      this.speaking = false;
-      utterance.onend && utterance.onend();
-    }, 100);
-  }
-
-  cancel() {
-    this.speaking = false;
-  }
-
-  pause() {
-    this.paused = true;
-  }
-
-  resume() {
-    this.paused = false;
-  }
-
-  getVoices() {
-    return [];
-  }
-}
-
-Object.defineProperty(global, 'SpeechSynthesisUtterance', {
-  value: MockSpeechSynthesisUtterance,
-});
-
-Object.defineProperty(global, 'speechSynthesis', {
-  value: new MockSpeechSynthesis(),
+Object.defineProperty(window, 'localStorage', {
+  value: localStorageMock,
 });

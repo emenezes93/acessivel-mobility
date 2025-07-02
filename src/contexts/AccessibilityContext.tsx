@@ -14,10 +14,10 @@ interface AccessibilityContextType {
   settings: AccessibilitySettings;
   updateSettings: (newSettings: Partial<AccessibilitySettings>) => void;
   speak: (text: string) => void;
-  vibrate: (pattern?: number | number[]) => void;
+  vibrate: (pattern: number | number[]) => void;
 }
 
-const AccessibilityContext = createContext<AccessibilityContextType | undefined>(undefined);
+export const AccessibilityContext = createContext<AccessibilityContextType | undefined>(undefined);
 
 export const useAccessibility = () => {
   const context = useContext(AccessibilityContext);
@@ -38,51 +38,29 @@ export const AccessibilityProvider: React.FC<{ children: React.ReactNode }> = ({
   });
 
   useEffect(() => {
-    // Load saved settings
     const savedSettings = localStorage.getItem('accessibilitySettings');
     if (savedSettings) {
       setSettings(JSON.parse(savedSettings));
     }
-
-    // Check for system preferences
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (prefersReducedMotion) {
-      setSettings(prev => ({ ...prev, reducedMotion: true }));
-    }
   }, []);
 
   useEffect(() => {
-    // Apply settings to document
-    const root = document.documentElement;
-    
-    // Font size
-    switch (settings.fontSize) {
-      case 'large':
-        root.style.fontSize = '18px';
-        break;
-      case 'extra-large':
-        root.style.fontSize = '24px';
-        break;
-      default:
-        root.style.fontSize = '16px';
-    }
-
-    // Contrast
-    if (settings.contrast === 'high') {
-      root.classList.add('high-contrast');
-    } else {
-      root.classList.remove('high-contrast');
-    }
-
-    // Reduced motion
-    if (settings.reducedMotion) {
-      root.classList.add('reduced-motion');
-    } else {
-      root.classList.remove('reduced-motion');
-    }
-
-    // Save settings
     localStorage.setItem('accessibilitySettings', JSON.stringify(settings));
+    
+    // Apply font size to document root
+    const fontSizes = {
+      normal: '16px',
+      large: '18px',
+      'extra-large': '24px'
+    };
+    document.documentElement.style.fontSize = fontSizes[settings.fontSize];
+    
+    // Apply contrast
+    if (settings.contrast === 'high') {
+      document.documentElement.classList.add('high-contrast');
+    } else {
+      document.documentElement.classList.remove('high-contrast');
+    }
   }, [settings]);
 
   const updateSettings = (newSettings: Partial<AccessibilitySettings>) => {
@@ -93,12 +71,11 @@ export const AccessibilityProvider: React.FC<{ children: React.ReactNode }> = ({
     if (settings.voiceEnabled && 'speechSynthesis' in window) {
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = 'pt-BR';
-      utterance.rate = 0.8;
       speechSynthesis.speak(utterance);
     }
   };
 
-  const vibrate = (pattern: number | number[] = 200) => {
+  const vibrate = (pattern: number | number[]) => {
     if (settings.hapticEnabled && 'vibrate' in navigator) {
       navigator.vibrate(pattern);
     }

@@ -1,3 +1,4 @@
+
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { UserProvider, useUser } from '../UserContext';
@@ -48,15 +49,20 @@ describe('UserContext', () => {
       setItem: vi.fn((key, value) => {
         store[key] = value.toString();
       }),
+      removeItem: vi.fn((key) => {
+        delete store[key];
+      }),
       clear: vi.fn(() => {
         store = {};
       }),
+      length: 0,
+      key: vi.fn(() => null),
     };
   })();
 
   beforeEach(() => {
     vi.clearAllMocks();
-    global.localStorage = localStorageMock;
+    global.localStorage = localStorageMock as any;
     localStorageMock.clear();
   });
 
