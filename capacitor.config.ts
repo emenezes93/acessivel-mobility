@@ -3,12 +3,8 @@ import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.acessivel.mobility',
-  appName: 'acessivel-mobility-now',
+  appName: 'Acessível Mobility',
   webDir: 'dist',
-  server: {
-    url: 'https://930e1b12-a875-4b06-973e-592a8f9f58d1.lovableproject.com?forceHideBadge=true',
-    cleartext: true
-  },
   plugins: {
     SplashScreen: {
       launchShowDuration: 3000,
